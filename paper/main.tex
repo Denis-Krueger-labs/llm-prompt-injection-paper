@@ -1,59 +1,72 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[12pt, a4paper]{article}
 
-% =========================
-% Packages
-% =========================
+% Encoding & language
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[ngerman]{babel}
-\usepackage[a4paper,margin=2.5cm]{geometry}
-\usepackage{setspace}
-\usepackage{csquotes}
-\usepackage[hidelinks]{hyperref}
-\usepackage{graphicx}
-\usepackage{booktabs}
-\usepackage{amsmath,amssymb}
+\usepackage[english, ngerman]{babel}  % German for abstract/RQ, English primary
 
+% Typography
+\usepackage{microtype}
+\usepackage{setspace}
 \onehalfspacing
 
-% =========================
-% Bibliography
-% =========================
-\usepackage[
-  backend=biber,
-  style=alphabetic,
-  sorting=nyt
-]{biblatex}
+% Layout
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{parskip}  % space between paragraphs instead of indent
 
+% Math & symbols
+\usepackage{amsmath}
+
+% Graphics & figures
+\usepackage{graphicx}
+\usepackage{float}
+\graphicspath{{figures/}}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{tabularx}
+
+% Code listings
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{teal},
+}
+
+% Hyperlinks & PDF metadata
+\usepackage[
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    pdftitle={LLM Prompt Injection Defences},
+    pdfauthor={Denis Krüger, Sebastian Mautner}
+]{hyperref}
+
+% Bibliography
+\usepackage[backend=biber, style=ieee]{biblatex}
 \addbibresource{references.bib}
 
-% =========================
-% Title
-% =========================
-\title{
-  LLM Prompt Injection Defences\\
-  \large Strukturierte Anfragen und Grenzen aktueller Schutzmechanismen
-}
+% Header/footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small LLM Prompt Injection Defences}
+\lhead{\small Krüger, Mautner}
+\cfoot{\thepage}
 
-\author{
-  Denis Krüger \\
-  Sebastian Mautner\\
-  Technische Hochschule Würzburg-Schweinfurt \\
-   SS 2026
-}
-\date{}
-% =========================
-% Document
-% =========================
+% ── Document ─────────────────────────────────────────────────────────────────
+
 \begin{document}
 
-\maketitle
-
-\begin{abstract}
-Diese Arbeit untersucht Prompt Injection als Sicherheitsproblem in LLM-integrierten Anwendungen.
-Im Fokus stehen Angriffsmodelle, Verteidigungsansätze sowie deren Grenzen.
-Besonderes Augenmerk liegt auf der Trennung von Instruktionen und Daten als Verteidigungsstrategie.
-\end{abstract}
+\input{sections/00_titlepage}
 
 \tableofcontents
 \newpage
@@ -70,6 +83,6 @@ Besonderes Augenmerk liegt auf der Trennung von Instruktionen und Daten als Vert
 \input{sections/10_fazit}
 
 \newpage
-\printbibliography
+\printbibliography[heading=bibintoc]
 
 \end{document}
