@@ -1,0 +1,75 @@
+\documentclass[12pt,a4paper]{article}
+
+% =========================
+% Packages
+% =========================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{csquotes}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+
+\onehalfspacing
+
+% =========================
+% Bibliography
+% =========================
+\usepackage[
+  backend=biber,
+  style=alphabetic,
+  sorting=nyt
+]{biblatex}
+
+\addbibresource{references.bib}
+
+% =========================
+% Title
+% =========================
+\title{
+  LLM Prompt Injection Defences\\
+  \large Strukturierte Anfragen und Grenzen aktueller Schutzmechanismen
+}
+
+\author{
+  Denis Krüger \\
+  Sebastian Mautner\\
+  Technische Hochschule Würzburg-Schweinfurt \\
+   SS 2026
+}
+\date{}
+% =========================
+% Document
+% =========================
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Diese Arbeit untersucht Prompt Injection als Sicherheitsproblem in LLM-integrierten Anwendungen.
+Im Fokus stehen Angriffsmodelle, Verteidigungsansätze sowie deren Grenzen.
+Besonderes Augenmerk liegt auf der Trennung von Instruktionen und Daten als Verteidigungsstrategie.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{sections/01_einleitung}
+\input{sections/02_llms_und_prompting}
+\input{sections/03_prompt_injection}
+\input{sections/04_bedrohungsmodell}
+\input{sections/05_struq}
+\input{sections/06_weitere_defences}
+\input{sections/07_benchmarks_und_metriken}
+\input{sections/08_grenzen_aktueller_defences}
+\input{sections/09_praxis_und_management}
+\input{sections/10_fazit}
+
+\newpage
+\printbibliography
+
+\end{document}
