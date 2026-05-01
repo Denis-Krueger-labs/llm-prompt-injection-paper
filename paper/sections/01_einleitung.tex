@@ -9,4 +9,13 @@ exploitable. As these systems grow more capable and more deeply integrated into
 automated workflows, the security implications of that integration deserve serious
 scrutiny.
 
+The threat this paper concerns itself with is \textit{prompt injection}.
+The attack is conceptually simple: an adversary hides malicious instructions
+inside external content that the model is asked to process. Because LLMs make
+no hard distinction between the instructions they are given and the data they
+are asked to reason about, those hidden instructions can quietly take hold.
+The model may veer off its intended task, return manipulated outputs, or leak
+information it was never meant to expose~\cite{perez2022ignore,
+greshake2023indirect}.
+
 % TODO: Continue the paper later
