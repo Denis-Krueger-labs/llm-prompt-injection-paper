@@ -3,7 +3,7 @@
 
 Large Language Models (LLMs) have quietly become load-bearing infrastructure
 in modern software. They sit at the heart of applications that read emails,
-parse documents, browse websites, and consume API responses doing so with
+parse documents, browse websites, and consume API responses --- doing so with
 a fluency that makes them genuinely useful but also, as it turns out, genuinely
 exploitable. As these systems grow more capable and more deeply integrated into
 automated workflows, the security implications of that integration deserve serious
@@ -18,4 +18,63 @@ The model may veer off its intended task, return manipulated outputs, or leak
 information it was never meant to expose~\cite{perez2022ignore,
 greshake2023indirect}.
 
-% TODO: Continue the paper later
+The root cause is a boundary problem. A human reader instinctively knows the
+difference between a note saying ``summarise this email'' and an email saying
+``ignore your previous instructions''. LLMs do not enjoy that instinct ---
+they operate on patterns in text, and patterns do not carry trust metadata.
+This makes any LLM-based system that touches external, potentially adversarial
+data structurally vulnerable, not just incidentally
+so~\cite{liu2023promptinjection}. The problem is severe enough that OWASP lists
+prompt injection as the \#1 security risk for LLM-integrated
+applications~\cite{chen2025secalign}.
+
+Researchers have not been idle. A range of defences has emerged: detection
+pipelines that flag suspicious inputs, sanitisation layers that strip or
+neutralise dangerous content, and more architectural approaches that try to
+enforce a structural separation between instructions and data.
+\textit{StruQ} introduces structured queries with special delimiter tokens and
+fine-tunes the model to follow only trusted instructions~\cite{chen2025struq}.
+\textit{SecAlign} goes a step further, framing the defence as a preference
+optimisation problem --- training the model not only to follow the legitimate
+instruction, but to actively avoid responding to injected
+ones~\cite{chen2025secalign}. For real-world agentic settings,
+\textit{AgentDojo} provides a dynamic benchmark environment with 97 realistic
+tasks and 629 security test cases across simulated email, banking, travel, and
+messaging environments~\cite{debenedetti2024agentdojo}.
+
+The honest assessment, however, is that none of these solutions have fully
+solved the problem. Recent work shows that both StruQ and SecAlign remain
+vulnerable to stronger adaptive attacks: Checkpoint-GCG achieves up to 96\%
+attack success rate against SecAlign-defended models by exploiting intermediate
+fine-tuning checkpoints~\cite{yang2025checkpointgcg}, while the
+architecture-aware ASTRA attack reaches up to 96\% success on unseen prompts
+without any knowledge of the surrounding context~\cite{pandya2025astra}. A
+critical re-evaluation of these defences further reveals that prior studies
+employed insufficiently rigorous evaluation methodology --- testing against a
+single injected prompt and relying on relative utility metrics that obscure real
+capability losses~\cite{jia2025critical}. The gap between what defences claim
+to provide and what they actually deliver in adversarial conditions is the
+central concern of this paper.
+
+\medskip
+\noindent\textbf{Research Question} \quad
+\textit{How effective is the separation of instructions and data as a defence
+strategy against prompt injection, and where do the limits of current LLM
+prompt injection defences lie?}
+
+\medskip
+The remainder of this paper is structured as follows.
+Section~\ref{sec:llms} introduces the necessary background on LLMs and their
+integration into external systems.
+Section~\ref{sec:attacks} characterises prompt injection attacks and their
+taxonomy.
+Section~\ref{sec:threat} defines the threat model underpinning our analysis.
+Section~\ref{sec:struq} examines StruQ and SecAlign as the primary structured
+query defences.
+Section~\ref{sec:defences} surveys further defence mechanisms.
+Section~\ref{sec:benchmarks} discusses evaluation benchmarks and metrics.
+Section~\ref{sec:limits} analyses the limits of current defences in light of
+recent adaptive attacks.
+Section~\ref{sec:praxis} considers practical and deployment-level implications.
+Section~\ref{sec:fazit} concludes with an answer to the research question and
+directions for future work. 
