@@ -15,7 +15,7 @@ inside external content that the model is asked to process. Because LLMs make
 no hard distinction between the instructions they are given and the data they
 are asked to reason about, those hidden instructions can quietly take hold.
 The model may veer off its intended task, return manipulated outputs, or leak
-information it was never meant to expose~\cite{perez2022ignore,
+information it was never meant to expose~\parencite{perez2022ignore,
 greshake2023indirect}.
 
 The root cause is a boundary problem. A human reader instinctively knows the
@@ -24,35 +24,35 @@ difference between a note saying ``summarise this email'' and an email saying
 they operate on patterns in text, and patterns do not carry trust metadata.
 This makes any LLM-based system that touches external, potentially adversarial
 data structurally vulnerable, not just incidentally
-so~\cite{liu2023promptinjection}. The problem is severe enough that OWASP lists
+so~\parencite{liu2023promptinjection}. The problem is severe enough that OWASP lists
 prompt injection as the \#1 security risk for LLM-integrated
-applications~\cite{chen2025secalign}.
+applications~\parencite{owasp2024llm}.
 
 Researchers have not been idle. A range of defences has emerged: detection
 pipelines that flag suspicious inputs, sanitisation layers that strip or
 neutralise dangerous content, and more architectural approaches that try to
 enforce a structural separation between instructions and data.
 \textit{StruQ} introduces structured queries with special delimiter tokens and
-fine-tunes the model to follow only trusted instructions~\cite{chen2025struq}.
+fine-tunes the model to follow only trusted instructions~\parencite{chen2025struq}.
 \textit{SecAlign} goes a step further, framing the defence as a preference
 optimisation problem --- training the model not only to follow the legitimate
 instruction, but to actively avoid responding to injected
-ones~\cite{chen2025secalign}. For real-world agentic settings,
+ones~\parencite{chen2025secalign}. For real-world agentic settings,
 \textit{AgentDojo} provides a dynamic benchmark environment with 97 realistic
 tasks and 629 security test cases across simulated email, banking, travel, and
-messaging environments~\cite{debenedetti2024agentdojo}.
+messaging environments~\parencite{debenedetti2024agentdojo}.
 
-The honest assessment, however, is that none of these solutions have fully
-solved the problem. Recent work shows that both StruQ and SecAlign remain
+Despite these advances, none of the proposed solutions have fully resolved the problem.
+Recent work shows that both StruQ and SecAlign remain
 vulnerable to stronger adaptive attacks: Checkpoint-GCG achieves up to 96\%
 attack success rate against SecAlign-defended models by exploiting intermediate
-fine-tuning checkpoints~\cite{yang2025checkpointgcg}, while the
+fine-tuning checkpoints~\parencite{yang2025checkpointgcg}, while the
 architecture-aware ASTRA attack reaches up to 96\% success on unseen prompts
-without any knowledge of the surrounding context~\cite{pandya2025astra}. A
+without any knowledge of the surrounding context~\parencite{pandya2025astra}. A
 critical re-evaluation of these defences further reveals that prior studies
 employed insufficiently rigorous evaluation methodology --- testing against a
 single injected prompt and relying on relative utility metrics that obscure real
-capability losses~\cite{jia2025critical}. The gap between what defences claim
+capability losses~\parencite{jia2025critical}. The gap between what defences claim
 to provide and what they actually deliver in adversarial conditions is the
 central concern of this paper.
 
@@ -77,4 +77,4 @@ Section~\ref{sec:limits} analyses the limits of current defences in light of
 recent adaptive attacks.
 Section~\ref{sec:praxis} considers practical and deployment-level implications.
 Section~\ref{sec:fazit} concludes with an answer to the research question and
-directions for future work. 
+directions for future work.
