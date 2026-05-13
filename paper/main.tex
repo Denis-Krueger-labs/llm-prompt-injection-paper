@@ -3,7 +3,7 @@
 % Encoding & language
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[english, ngerman]{babel}  % German for abstract/RQ, English primary
+\usepackage[english]{babel}  %  English primary
 
 % Typography
 \usepackage{microtype}
@@ -51,7 +51,11 @@
 ]{hyperref}
 
 % Bibliography
-\usepackage[backend=biber, style=ieee]{biblatex}
+\usepackage[
+  backend=biber,
+  style=authoryear,
+  sorting=nyt
+]{biblatex}
 \addbibresource{references.bib}
 
 % Header/footer
@@ -68,7 +72,7 @@
 
 \input{sections/00_titlepage}
 
-\tableofcontents
+
 \newpage
 
 \input{sections/01_einleitung}
