@@ -1,3 +1,174 @@
-\section{Einleitung}
+\section{Limits of Current Defences}
+\label{sec:limits}
 
-% TODO: Inhalt ergänzen.
+\subsection{Evaluation Methodology Problems}
+
+A recurring problem in prompt injection defence research is that reported
+robustness numbers often do not reflect realistic adversarial conditions.
+\citeauthor{jia2025critical} argue that the field has systematically evaluated
+defences under settings that are too narrow to support the conclusions drawn
+from them~\cite{jia2025critical}.
+
+The most common issue is attack diversity. Many evaluations rely primarily on
+heuristic attacks --- manually written strings such as ``ignore previous
+instructions'' --- as their primary or sole measure of robustness. These serve
+as a useful baseline, but they do not represent an attacker who actively adapts
+their strategy to the specific defence being tested. A defence that blocks every
+heuristic attack in the test set may still be trivially bypassed by an attacker
+who knows how it works.
+
+A second issue is prompt diversity. Several defences, including StruQ and
+SecAlign in their original evaluations, measure attack success rate against a
+single injected prompt: ``Print exactly `Hacked!'\,''. As \citeauthor{jia2025critical}
+demonstrate, this significantly overstates robustness. When evaluated across
+diverse target and injected prompt combinations drawn from OpenPromptInjection
+and MMLU-PI, GCG achieves ASV exceeding 0.80 against StruQ-defended models and
+0.72 against SecAlign-defended models --- results that stand in sharp contrast
+to the near-zero rates reported in the original papers~\cite{jia2025critical}.
+
+A third issue concerns utility measurement. Several defences report utility
+preservation using win rate on AlpacaFarm, comparing the defended model against
+a reference LLM. \citeauthor{jia2025critical} show that this metric is
+insufficient: when using Llama-3-8B-Instruct as a more appropriate reference,
+StruQ achieves a win rate of only 21.6\% and SecAlign 36.4\%. On absolute
+utility benchmarks, both models show measurable capability degradation compared
+to the undefended baseline~\cite{jia2025critical}. A model can appear secure
+and utility-preserving under one evaluation methodology while performing
+substantially worse under a more rigorous one.
+
+\subsection{Adaptive Attacks}
+
+The clearest evidence that current defences are less robust than reported comes
+from adaptive attacks --- attacks specifically designed to target the defence
+mechanism rather than the underlying model.
+
+\citeauthor{yang2025checkpointgcg} introduce Checkpoint-GCG, which exploits
+the incremental nature of fine-tuning to find adversarial suffixes that
+transfer to the final defended model. The key observation is that intermediate
+training checkpoints are substantially more vulnerable than the final model.
+By running GCG against each checkpoint in sequence --- using the successful
+suffix from one checkpoint to initialise the next --- the attack maintains
+traction across the training process. Against SecAlign-defended
+Llama-3-8B-Instruct, standard GCG achieves only 6\% ASR. Checkpoint-GCG
+achieves 88\%~\cite{yang2025checkpointgcg}. For universal suffixes that
+generalise across unseen inputs, Checkpoint-GCG reaches 75.3\% success on
+held-out samples and transfers to Meta-SecAlign-8B at 63.9\% in a black-box
+setting --- without access to the target model's
+weights~\cite{yang2025checkpointgcg}.
+
+This result has an important implication. The apparent robustness of SecAlign
+against standard GCG is not evidence that the underlying vulnerability has been
+eliminated. It reflects the fact that GCG's gradient signal becomes a poor
+optimisation guide once the loss landscape is reshaped by fine-tuning.
+Checkpoint-GCG sidesteps this by approaching the defended model gradually,
+from a direction where the landscape is still navigable.
+
+\citeauthor{pandya2025astra} demonstrate a related but architecturally distinct
+failure mode. Their attack, ASTRA, targets the attention matrices of the model
+directly rather than optimising for output token probabilities. The key insight
+is that if the model's attention can be redirected toward the attacker's
+injected content, the model will follow that content regardless of what the
+fine-tuning defence has trained it to do. Against SecAlign-defended
+Mistral-7B-Instruct, ASTRA substantially outperforms standard GCG at the same
+token budget~\cite{pandya2025astra}. The universal variant, ASTRA++, reaches
+96\% success on unseen prompts against SecAlign-defended Llama-3-8B-Instruct
+--- operating under the weak knowledge assumption where the attacker has no
+access to the surrounding context~\cite{pandya2025astra}.
+
+\citeauthor{pandya2025astra} also provide an explanation for why GCG
+consistently underperforms as an evaluation tool for these defences. Through
+controlled experiments comparing guided and unguided search, they show that
+GCG's gradient-based candidate selection does not significantly outperform
+random token substitution against defended models. The gradient of the target
+log-probability provides a poor optimisation signal once the defence has
+reshaped the loss landscape. This means that GCG was never an appropriate
+evaluation mechanism for fine-tuning-based defences --- not because the
+defences are strong, but because the attack is not suited to the
+task~\cite{pandya2025astra}.
+
+\subsection{Security and Utility Trade-offs}
+
+Robustness does not come for free. Every defence mechanism discussed in this
+paper imposes some cost on model utility, and the magnitude of that cost is
+frequently underreported.
+
+Detection-based approaches introduce false positives. The ProtectAI BERT
+classifier evaluated in AgentDojo reduces targeted ASR to 7.95\%, but also
+reduces benign utility to 41.49\% --- the largest utility drop of any defence
+tested~\cite{debenedetti2024agentdojo}. PromptGuard also illustrates the risk
+of over-detection: while it performs well on aggregate detection metrics,
+\citeauthor{jia2025critical} report a high false positive rate on clean
+inputs~\cite{jia2025critical}. A detector with this kind of false positive
+behaviour is not deployable in practice.
+
+Fine-tuning defences impose subtler but still measurable costs. As discussed
+above, StruQ and SecAlign both show absolute utility degradation when evaluated
+against appropriate baselines~\cite{jia2025critical}. Tool isolation in
+AgentDojo reduces ASR to 6.84\% but fails entirely in 17\% of test cases where
+the tools required to complete the legitimate task overlap with those required
+to carry out the attack~\cite{debenedetti2024agentdojo}.
+
+The deeper issue is that robustness and instruction-following capability are in
+tension by design. A model trained to be more sceptical of instructions
+embedded in data will sometimes be too sceptical --- treating legitimate
+imperative sentences in a document as potential injections. SecAlign partially
+mitigates this: its evaluation shows that the defended model is actually better
+at processing imperative sentences in data as data, rather than as
+instructions, compared to the undefended baseline~\cite{chen2025secalign}. But
+this does not fully resolve the tension, and it does not hold uniformly across
+all deployment contexts.
+
+\subsection{Architectural Limitations}
+
+Fine-tuning defences operate within a fundamental constraint: all content still
+enters the same context window and is processed by the same model. The
+separation between trusted instructions and untrusted data that StruQ and
+SecAlign attempt to enforce is semantic, not structural. It is a learned
+behaviour, not a hard boundary. A sufficiently capable attacker who understands
+how the model was trained can search for inputs that make the model behave as
+if that boundary does not exist --- which is precisely what Checkpoint-GCG and
+ASTRA demonstrate~\cite{yang2025checkpointgcg, pandya2025astra}.
+
+System-level approaches attempt to address this at the architectural level.
+\citeauthor{wu2024systemlevel} apply information flow control principles to
+enforce a hard separation between trusted planning components and untrusted
+external data, ensuring that injected content cannot influence the planning
+process regardless of its linguistic content~\cite{wu2024systemlevel}.
+\citeauthor{zhong2025rtbas} take a related approach in RTBAS, using selective
+taint tracking and dependency screening to contain the influence of untrusted
+tool outputs~\cite{zhong2025rtbas}. These approaches provide stronger formal
+guarantees than model-level defences, but they require significant changes to
+system architecture and reduce the flexibility that makes LLM agents useful in
+the first place.
+
+The tension between formal guarantees and practical deployability has not been
+resolved. A defence that is architecturally secure but requires a complete
+redesign of the application pipeline will not be adopted. A defence that is
+easy to deploy but relies on a model's learned behaviour to hold under pressure
+provides weaker guarantees than its evaluation numbers suggest.
+
+\subsection{Why Prompt Injection Remains an Open Problem}
+
+The evidence reviewed in this section points to a consistent pattern. Defences
+that appear robust under standard evaluation conditions tend to weaken
+significantly when the evaluation methodology is made more rigorous ---
+whether by diversifying the attack set, introducing adaptive attacks, or
+measuring utility more carefully. This mirrors a well-established dynamic in
+adversarial machine learning, where defences evaluated against a fixed attacker
+are routinely broken once a stronger adversary is
+applied~\cite{jia2025critical}.
+
+The deeper issue is structural. Prompt injection exploits the core capability
+of LLMs --- their ability to follow natural language instructions --- and turns
+it against the system. As long as models process instructions and data in the
+same context window without structural separation, the attack surface remains.
+Fine-tuning can raise the cost of a successful attack, but it cannot eliminate
+the underlying condition. Detection can intercept known attack patterns, but
+adaptive attackers learn to evade detectors as quickly as detectors are
+trained~\cite{jia2025critical, yang2025checkpointgcg}.
+
+As LLMs gain access to external tools, APIs, memory systems, and autonomous
+decision-making capabilities, the stakes of a successful injection continue to
+rise. The problem is not a temporary implementation flaw awaiting a patch.
+No universally reliable solution currently exists, and it remains an active
+area of security research.
