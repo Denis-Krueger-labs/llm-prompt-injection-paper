@@ -1,3 +1,143 @@
-\section{Einleitung}
+\section{Practical Implications and Deployment Considerations}
+\label{sec:praxis}
 
-% TODO: Inhalt ergänzen.
+\subsection{Prompt Injection as a System-Level Risk}
+
+A key conclusion from the research surveyed in this paper is that prompt
+injection should not be treated as an isolated model weakness. In most
+real-world deployments, the LLM is one component within a larger pipeline that
+includes retrieval systems, external APIs, tool execution frameworks, memory
+systems, and user-facing interfaces. A successful injection does not stop at
+the model --- it propagates into whatever the model has access to.
+
+This reframes the threat significantly. The relevant question is not simply
+whether the model can be manipulated, but what capabilities the surrounding
+system exposes once manipulation occurs. A model with read-only access to a
+document store poses a different risk profile than one with the ability to send
+emails, execute code, or authorise financial transactions. As AgentDojo
+demonstrates, prompt injection becomes substantially more dangerous the more
+autonomously capable the system is~\cite{debenedetti2024agentdojo}. In the
+Slack AI incident documented by \citeauthor{chen2025secalign}, a single
+injected instruction in a public channel was sufficient to exfiltrate data from
+private conversations --- not because the model was poorly designed, but
+because it had access to data the attacker wanted~\cite{chen2025secalign}.
+
+The P2SQL attack family illustrates a further dimension of this problem. When
+an LLM generates database queries from natural language, a malicious prompt can
+manipulate the generated SQL, turning a prompt injection into a classical SQL
+injection attack against the backend~\cite{pedro2025p2sql}. The LLM becomes a
+bridge between natural language and traditional injection vulnerabilities ---
+a connection that most threat models do not account for.
+
+\subsection{Defence in Depth}
+
+Given that no single defence mechanism eliminates the attack surface, the
+practical security literature increasingly converges on a layered approach.
+The goal is not to prevent every successful injection --- which current evidence
+suggests is not achievable --- but to ensure that a successful injection cannot
+easily escalate into a critical incident.
+
+A layered deployment might combine detection-based filtering at the input
+boundary, structured separation of instructions and data at the model level,
+restricted tool permissions that limit what the model can do even if
+manipulated, sandboxed execution environments that contain the consequences of
+any action, and human approval requirements for high-risk or irreversible
+operations. No single layer is sufficient, but each reduces the probability
+that an attacker can traverse the full chain from injection to impact.
+
+This mirrors established practice in traditional software security, where
+defence in depth has long been the standard response to vulnerabilities that
+cannot be fully eliminated at any single layer. The same logic applies here.
+SecAlign's authors explicitly acknowledge this framing, recommending that their
+defence be combined with detection systems and system-level controls rather
+than deployed as a standalone solution~\cite{chen2025secalign}.
+
+\subsection{Human Oversight and Operational Controls}
+
+Current research consistently shows that LLM behaviour under adversarial
+conditions remains difficult to predict. Fully autonomous systems that execute
+sensitive actions without human review therefore introduce risk that
+purely technical defences cannot fully mitigate.
+
+Practical operational controls do not solve prompt injection directly, but they
+limit its consequences. Requiring explicit user confirmation before sensitive
+or irreversible actions --- sending an email, making a purchase, modifying a
+file --- means that a successful injection must also deceive the user before
+it can cause harm. Restricting which tools an agent can access by default
+reduces the attack surface available to an injected instruction. Logging model
+outputs and tool calls creates an audit trail that supports incident detection
+and response.
+
+AgentDojo's tool filter defence illustrates how even a simple form of
+operational control can be effective: by requiring the model to declare which
+tools it needs before processing any untrusted data, the defence reduces
+targeted ASR to 6.84\%~\cite{debenedetti2024agentdojo}. The limitation ---
+that it fails when user and attacker require the same tools --- also illustrates
+why operational controls alone are insufficient and need to be combined with
+other layers.
+
+\subsection{Deployment Trade-offs}
+
+Secure LLM deployment requires navigating genuine trade-offs between security,
+usability, and operational complexity. These trade-offs do not have clean
+solutions and are likely to remain a source of tension in commercial deployments.
+
+Architectural approaches based on information flow control provide the strongest
+formal guarantees currently available, but require substantial redesign of
+existing application pipelines~\cite{wu2024systemlevel, zhong2025rtbas}. An
+organisation that has already built an agentic system around a standard LLM API
+cannot easily retrofit structural isolation. Fine-tuning approaches such as
+StruQ and SecAlign integrate more naturally into existing workflows, but their
+robustness is contingent on the attacker not having access to the model weights
+or training checkpoints --- an assumption that does not hold for open-weight
+models deployed in adversarial environments~\cite{yang2025checkpointgcg}.
+
+Detection systems are the most operationally lightweight option, but as
+discussed in Section~\ref{sec:limits}, they impose utility costs through false
+positives and remain bypassable through adaptive
+attacks~\cite{jia2025critical}. The PromptGuard example, where high AUC
+coexists with a very high false positive rate on clean inputs, illustrates why
+aggregate metrics can be misleading when evaluating detection-based
+defences~\cite{jia2025critical}.
+
+In commercial environments, deployment speed and usability pressures frequently
+conflict with conservative security design. This is not a failure of engineering
+judgement --- it reflects genuine uncertainty about which threats will
+materialise and what level of friction users will tolerate. What the research
+reviewed in this paper does establish clearly is that the cost of underestimating
+the threat is likely to increase as LLM systems gain more autonomy and access
+to more sensitive operations.
+
+\subsection{Future Directions}
+
+Several directions emerge naturally from the limitations identified in this
+paper. At the technical level, the most promising avenue is stronger
+architectural isolation --- moving away from relying on model behaviour to
+enforce trust boundaries and toward structural mechanisms that make those
+boundaries enforceable regardless of what the model does. Work in this
+direction, such as \citeauthor{wu2024systemlevel}'s information flow control
+approach and \citeauthor{debenedetti2025defeating}'s design-level
+guarantees~\cite{wu2024systemlevel, debenedetti2025defeating}, represents a
+fundamentally different research programme than fine-tuning defences, and one
+that may be necessary if the adaptive attack results in Section~\ref{sec:limits}
+are taken seriously.
+
+At the evaluation level, the field needs methodology that takes adaptive
+attackers as the baseline rather than the exception. Benchmarks such as
+AgentDojo and FSPIB are steps in the right direction because they evaluate
+systems under more realistic conditions~\cite{debenedetti2024agentdojo,
+fspib2025}, but standardised evaluation against adaptive attacks with
+consistent utility metrics remains an open problem. The critique by
+\citeauthor{jia2025critical} of current evaluation practice should be treated
+as a call for methodological reform, not just a criticism of individual
+papers~\cite{jia2025critical}.
+
+One further complication deserves mention. More capable models are not
+necessarily more secure. AgentDojo's inverse scaling result --- that more
+capable models tend to be easier to attack because they are better at executing
+whatever instructions they receive --- suggests that the relationship between
+model capability and security is not straightforward~\cite{debenedetti2024agentdojo}.
+Improvements in general model quality do not automatically translate into
+improvements in prompt injection robustness. This is a consideration that
+organisations deploying frontier models should factor into their threat
+assessments.
