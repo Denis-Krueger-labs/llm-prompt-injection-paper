@@ -1,3 +1,7 @@
-\section{Einleitung}
+\section{LLMs und Prompting}
+\label{sec:llms}
 
-% TODO: Inhalt ergänzen.
+Before we can delve into the specifics of prompt injection attacks and their defences, it is crucial to understand the underlying technology: Large Language Models (LLMs) and the concept of prompting. \\
+LLMs are AI models that have been trained on vast amounts of text data to understand and generate human-like language. They are designed to predict the next word in a sentence, which allows them to generate coherent and contextually relevant text based on the input they receive.  \textbf{CITATION NEEDED}\\
+They work by taking the user's input, the so-called "prompt", inputs it into the System-prompt, which tells the LLM what to do/ not do with the prompt. From there the combined prompt is put into a complex mathematical formula involving among other things matrix multiplication, \textbf{CITATION NEEDED. MORE INFORMATION AS WELL. MAYBE EXPAND IT FURTHER}
+used to calculate the most probable next letters, a so-called "Token", repeating the algorithm until an answer is complete. During this process it also uses all data avaiable to it, including both training data as well as any information provided to it by the Host, even if that information may be confidental.
