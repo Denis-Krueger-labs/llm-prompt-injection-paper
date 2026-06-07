@@ -1,4 +1,25 @@
 \section{StruQ}
 \label{sec:struq}
-
-% TODO: Inhalt ergänzen.
+\subsection{Introduction to structured queries}
+These next chapters will deal with concrete mechanisms and strategy to defend against prompt injection attacks.
+In this chapter we will start by introducing StruQ, a system for protecting against prompt injection attacks, proposed by Sizhe Chen.\\
+The vulnerability exploited by prompt injections primarily stems from the model's inability to differentiate between trusted instructions and untrusted data. 
+This is addressed by StruQ through the Introduction of Structured Queries, a proposed system which turns the LLM's unsafe-by-design API, where everything in the prompt is to be seen as an instruction, into a safe-by-design API, which explicitly separates the instructions and data into two distinct channels \parencite{chen2025struq}.
+\subsection{StruQ's Architecture}
+This separation is implemented via a secure front-end, which formats the inputs using reserved delimiter tokens, namely [INST] for instructions, [INPT] for data and [RESP] for model responses.
+The front-end also recursively filters all instances of these tokens from user data to avoid so-called "Completion Attacks", where attackers try to insert fake responses to trick the model \parencite{chen2025struq}.\\
+Because existing  LLMs are typically trained to follow all instructions regardless of their positions in the prompt, StruQ introduces a fine-tuning strategy called structured instruction tuning. 
+This strategy starts off with an untrained LLM,which it then trains on a dataset specifically augmented to discourage following data-based instructions \parencite{chen2025struq}.\\
+\begin{figure}
+\includegraphics{./images/StruQFilter}
+\caption{The architecture behind StruQ \parencite{chen2025struq} } 
+\end{figure}
+\subsection{StruQ's impact and limits}
+Through this training StruQ reduces the success rate of human-crafted manual attacks to under 2\%.
+StruQ is not a perfect solution, as there are still more advanced attacks, which are relatively even on defended models. 
+One such attack would be the Greedy Coordinate Gradient (GCG), where prompts are automatically generated and appended with specific tokens making the LLM more likely to actually answer instead of refusing \parencite{zou2023universal}.
+This attack has a success rate on 97\% on unguarded LLMs, which is only reduced to 58\% on models using StruQ, which although a great improvement, still leaves the model rather vulnerable to it.\parencite{chen2025struq}\\
+Furthermore, StruQ's viability for use in chatbots offering open ended conversations is quite limited, as it requires an API in which users need to explicitly mark data as such, something most users would be rather opposed to \parencite{chen2025struq}.
+\subsection{Conclusion}
+Overall, StruQ represents a significant step towards making LLM-integrated applications/ systems more secure against prompt injection, pushing them towards a safe-by-design API.
+Despite these accomplishments it still not an optimal solution to the issue at hand, as StruQ is mainly suitable for programmatic applications, whilst still remaining vulnerable to more advanced attacks. 
