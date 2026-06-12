@@ -1,95 +1,87 @@
 \section{Prompt Injection Attacks}
 \label{sec:attacks}
 
-As discussed in the previous section, the flexibility that makes LLMs useful
-also creates new attack surfaces. Prompt injection exploits this property by
-embedding malicious instructions into content processed by the model. The goal
-is to influence the model's behaviour and cause it to follow attacker-controlled
-instructions instead of the intended ones~\parencite{perez2022ignore}.
-
-Unlike traditional vulnerabilities, prompt injection does not exploit flaws in
-software implementation. Instead, it takes advantage of the fact that current
-LLMs process instructions and external content within the same context window,
-without any explicit mechanism for separating trusted instructions from
-untrusted data~\parencite{chen2025struq}. As a result, attackers can exploit
-this ambiguity to manipulate model behaviour. OWASP therefore lists prompt
-injection as the most significant security risk for LLM-integrated
-applications~\parencite{owasp2024llm}.
+With that foundation in place, it is possible to look at what prompt injection
+actually looks like in practice. The core mechanism is that an attacker gets
+malicious instructions into the model's context, and the model acts on them
+instead of the legitimate ones~\parencite{perez2022ignore}. Notably, this does
+not require any bug in the software --- the model is functioning as intended,
+it is simply following instructions from an unintended
+source~\parencite{chen2025struq}. OWASP ranks this as the top security risk
+for LLM-integrated applications~\parencite{owasp2024llm}.
 
 \subsection{Direct and Indirect Prompt Injection}
 
-The literature distinguishes between two primary attack variants, depending on
-how malicious instructions are delivered~\parencite{greshake2023indirect}.
+The literature distinguishes two main delivery mechanisms~\parencite{greshake2023indirect}.
 
-\textit{Direct prompt injection} occurs when attackers interact with the model
-directly and attempt to override system instructions through specially crafted
-inputs. Typical examples include prompts such as ``ignore previous
-instructions'' or other attempts to bypass safety mechanisms
-~\parencite{perez2022ignore}.
+\textit{Direct prompt injection} is the more obvious variant: the attacker
+interacts with the model directly and attempts to override its instructions
+through crafted inputs. Common examples include prompts such as ``ignore
+previous instructions'' or attempts to convince the model it is operating in a
+different context~\parencite{perez2022ignore}.
 
-\textit{Indirect prompt injection} is generally more dangerous in practical
-deployments. Here, malicious instructions are hidden inside external content
-such as emails, websites, documents, or API responses. Since retrieval-augmented
-generation systems and LLM agents continuously process such data, users may be
-unaware that an attack is taking place~\parencite{greshake2023indirect}. As
-shown by \textcite{debenedetti2024agentdojo}, untrusted tool outputs represent
-an effective attack vector in agentic systems.
+\textit{Indirect prompt injection} is generally considered the more dangerous
+variant in real deployments. Here, the attacker does not interact with the
+model at all --- instead, malicious instructions are placed in content the
+model will eventually process as part of its normal operation: a webpage, a
+document, an email, or an API response. Since LLM agents and RAG systems
+continuously consume such data, users may be entirely unaware that an attack
+is occurring~\parencite{greshake2023indirect}. As \textcite{debenedetti2024agentdojo}
+demonstrate, untrusted tool outputs are a particularly effective vector in
+agentic systems.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{./images/direct_prompt_injection.pdf}
+\includegraphics[width=\linewidth]{figures/direct_prompt_injection.pdf}
 \caption{Direct prompt injection.}
 \label{fig:direct-prompt-injection}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{./images/indirect_prompt_injection.pdf}
+\includegraphics[width=\linewidth]{figures/indirect_prompt_injection.pdf}
 \caption{Indirect prompt injection.}
 \label{fig:indirect-prompt-injection}
 \end{figure}
 
 \subsection{Why Prompt Injection Works and Its Consequences}
 
-The root cause of prompt injection lies in the architecture of current language
-models. LLMs operate on sequences of tokens and have no internal notion of
-provenance. Consequently, they cannot reliably distinguish between trusted
-system instructions and untrusted content supplied by external
-sources~\parencite{liu2023promptinjection}. This problem is further amplified
-by the fact that modern LLMs are explicitly optimised to follow instructions,
-making them highly useful but also inherently susceptible to manipulation.
+The reason prompt injection works comes down to how LLMs process input. They
+operate on token sequences and have no internal representation of where a token
+came from. A system instruction and an attacker-injected string are
+indistinguishable at the model level~\parencite{liu2023promptinjection}.
+This problem is compounded by the fact that modern LLMs are explicitly trained
+to follow instructions well --- the same property that makes them useful also
+makes them susceptible to manipulation.
 
-The consequences of successful prompt injection depend on the capabilities of
-the affected system. \textcite{fspib2025} distinguish between
-\textit{information-level} and \textit{action-level} attacks. At the
-information level, attackers may manipulate outputs, extract sensitive
-information, or reveal hidden system prompts. In agentic systems, prompt
-injection can additionally influence tool calls and interactions with external
-services, potentially causing unintended actions on behalf of the
-user~\parencite{fspib2025}.
-
-The attack surface is not limited to the LLM itself. Prompt injection can
-propagate into connected systems and may therefore serve as a bridge between
-natural language manipulation and more traditional attack vectors
-~\parencite{pedro2025p2sql}. Real-world incidents, such as attacks against
-Slack AI, demonstrate that these risks are not merely theoretical
-~\parencite{chen2025secalign}.
+What an attacker can achieve depends on the capabilities of the surrounding
+system. \textcite{fspib2025} distinguish between \textit{information-level}
+and \textit{action-level} impacts. At the information level, attackers can
+manipulate outputs, extract sensitive data, or elicit system prompt disclosure.
+In agentic systems, a successful injection can additionally trigger tool calls
+or take actions on the user's behalf~\parencite{fspib2025}. The attack surface
+extends beyond the model itself: injections can propagate into connected
+services, functioning as a bridge between natural language manipulation and
+more traditional attack vectors~\parencite{pedro2025p2sql}. Real-world
+incidents such as the Slack AI attack confirm that these risks are not
+theoretical~\parencite{chen2025secalign}.
 
 \subsection{Attack Taxonomy}
 
-Prompt injection attacks can be further classified according to the method used
-to construct the injected content.
+Attacks also differ in how the injected content is constructed.
 
-\textit{Heuristic attacks} rely on manually crafted instructions designed to
-override the original task. Examples include Context Ignoring attacks,
-Fake Completion attacks, and combinations of multiple techniques
-~\parencite{jia2025critical}. These attacks are relatively simple to construct
+\textit{Heuristic attacks} are handcrafted prompts designed to override the
+model's instructions, such as context ignoring or fake completion
+techniques~\parencite{jia2025critical}. They are straightforward to construct
 and remain effective against many systems.
 
-\textit{Optimisation-based attacks} employ gradient-guided search techniques to
-generate adversarial token sequences that maximise the probability of achieving
-a desired outcome. The Greedy Coordinate Gradient (GCG) algorithm introduced by
-\textcite{zou2023universal} represents one of the most prominent approaches.
-Compared to heuristic attacks, optimisation-based methods are considerably more
-difficult to defend against and play an important role in evaluating the
-limitations of current defence mechanisms discussed later in this paper.
+\textit{Optimisation-based attacks} use gradient-guided search to find token
+sequences that maximise the probability of the model complying with the
+injected instruction. The Greedy Coordinate Gradient (GCG) method by
+\textcite{zou2023universal} is the most widely studied example. These are
+considerably harder to defend against and play a central role in evaluating
+the robustness of the defences discussed later in this paper.
+
+Before examining those defences, it is necessary to define a threat model that
+specifies what attackers are assumed to be capable of and what a secure system
+should guarantee.
