@@ -1,42 +1,39 @@
 \section{Introduction}
 \label{sec:einleitung}
 
-Large Language Models (LLMs) have become an integral part of modern software.
-They are increasingly embedded in applications that read emails, process
-documents, browse websites, and interact with external services. Their ability
-to reason over large amounts of data makes them highly useful, but also
-introduces new security challenges. As LLMs become more deeply integrated into
-automated workflows and agentic systems, the consequences of successful
-manipulation extend beyond incorrect answers and may affect entire systems.
+LLMs have become a core component of modern software infrastructure. They are
+embedded in applications that read emails, summarise documents, browse the web,
+and execute actions on behalf of users --- often with minimal human oversight.
+This broad integration makes them highly capable, but also exposes them to a
+class of attacks that did not exist before they were deployed at this scale.
 
-The threat this paper focuses on is \textit{prompt injection}. In these
-attacks, adversaries embed malicious instructions into content that the model
-is asked to process. Because current LLMs do not maintain a strict separation
-between instructions and data, injected content may influence the model's
-behaviour, manipulate outputs, or expose sensitive
-information~\parencite{perez2022ignore, greshake2023indirect}.
+The threat this paper focuses on is \textit{prompt injection}. The basic
+mechanism is that an attacker embeds malicious instructions inside content the
+model is supposed to process, and the model follows them instead of the
+legitimate ones~\parencite{perez2022ignore, greshake2023indirect}. Because
+LLMs have no reliable way to distinguish developer instructions from
+attacker-supplied text, injected content can redirect model behaviour, extract
+sensitive information, or trigger unintended actions.
 
-The underlying issue is a boundary problem. Human readers naturally distinguish
-between instructions and quoted content, whereas LLMs operate purely on textual
-patterns. Consequently, any application that processes untrusted external data
-is structurally vulnerable to prompt injection
-attacks~\parencite{liu2023promptinjection}. The severity of the problem is
-reflected by OWASP, which lists prompt injection as the most significant
-security risk for LLM-integrated applications~\parencite{owasp2024llm}.
+The underlying problem is architectural. A human reader can tell the difference
+between a quoted string and an actual command, but an LLM just sees tokens. Any
+application that feeds untrusted external data into a model is structurally
+exposed to this kind of attack~\parencite{liu2023promptinjection}. OWASP
+currently lists it as the most significant security risk for LLM-integrated
+applications~\parencite{owasp2024llm}.
 
-Unlike traditional vulnerabilities such as SQL injection, the distinction
-between instructions and data is largely semantic rather than syntactic. LLMs
-must interpret user instructions while simultaneously reasoning about external
-content within the same context window. As a result, the boundary between
-trusted and untrusted information is not formally enforced.
+What distinguishes prompt injection from something like SQL injection is that
+there is no syntactic boundary to enforce. The separation between instructions
+and data is semantic, which means it cannot be addressed through simple input
+sanitisation. The model must interpret both simultaneously, within the same
+context window, with no formal distinction between them.
 
-Researchers have proposed a variety of defences, ranging from input filtering
-and sanitisation to architectural approaches that attempt to separate
-instructions from data. However, recent studies demonstrate that even advanced
-defences remain vulnerable to adaptive attacks and that their effectiveness is
-often overestimated~\parencite{yang2025checkpointgcg, pandya2025astra,
-jia2025critical}. The gap between claimed and actual security guarantees
-therefore remains one of the central challenges addressed in this paper.
+Researchers have proposed a range of defences --- from input filtering to
+architectural redesigns --- but recent evaluations consistently find that these
+hold up less well than initially reported, particularly against attackers who
+adapt to the specific defence being
+used~\parencite{yang2025checkpointgcg, pandya2025astra, jia2025critical}. That
+gap between claimed and actual robustness is a central concern of this paper.
 
 \medskip
 \noindent\textbf{Research Question} \quad
@@ -45,7 +42,6 @@ strategy against prompt injection, and where do the limits of current LLM
 prompt injection defences lie?}
 
 \medskip
-To answer this question, the paper first introduces the foundations of LLMs
-and prompting before examining prompt injection attacks, threat models,
-existing defence mechanisms, their limitations, and practical implications for
-secure deployment.
+To answer this question, the paper first covers how LLMs and prompting work,
+since the attack only makes sense in the context of how models process
+instructions and external content.
