@@ -1,69 +1,56 @@
 \section{Threat Model}
 \label{sec:threat}
 
-The diversity of prompt injection attacks illustrates that their effectiveness
-depends not only on the injected instructions themselves, but also on the
-capabilities available to attackers and the assumptions made by the underlying
-system. A more systematic analysis therefore requires the definition of a
-suitable threat model.
+To evaluate defences meaningfully, it is necessary to be precise about the
+assumed system and attacker. The effectiveness of any defence depends on what
+capabilities an attacker has and what the target system looks like.
 
 \subsection{System Model}
 
-This paper considers LLM-integrated applications in which trusted instructions
-are combined with externally retrieved, potentially untrusted content. Typical
-examples include retrieval-augmented generation (RAG) systems, AI assistants,
-document summarisation pipelines, and autonomous agents interacting with
-external tools and APIs~\parencite{debenedetti2024agentdojo,
-ruparel2026survey}.
+This paper considers LLM-integrated applications where developer instructions
+and untrusted external content are processed within the same context window.
+This covers a wide range of deployed systems: RAG pipelines, AI assistants,
+document summarisation tools, and autonomous agents that interact with external
+APIs~\parencite{debenedetti2024agentdojo, ruparel2026survey}.
 
-In such systems, developer-defined instructions and externally supplied data
-are combined into a single context window before being processed by the model.
-Current LLMs have no inherent mechanism for distinguishing between trusted
-instructions and untrusted content, making prompt injection attacks possible
-~\parencite{chen2025struq}. Since token sequences carry no information about
-their origin, a malicious instruction embedded in a web page or email is
-structurally indistinguishable from legitimate instructions provided by the
-system designer.
+The defining characteristic of these systems is that the model receives both
+its instructions and potentially adversarial data in the same format, with no
+built-in mechanism to distinguish between them~\parencite{chen2025struq}. A
+malicious instruction embedded in a retrieved document is structurally
+indistinguishable from a legitimate developer instruction, which is the
+fundamental condition that makes prompt injection possible.
 
 \subsection{Attacker Model}
 
-The attacker is assumed to control at least one external source consumed by
-the system. This may include websites, emails, uploaded documents, or API
-responses~\parencite{greshake2023indirect}. Importantly, no privileged access
-to the application or model itself is required. The attacker only needs to
-place malicious content somewhere the system will eventually process.
+The attacker does not require access to the model or the application itself.
+It is sufficient to control any external source the system will eventually
+consume --- a website, an email, an uploaded document, or an API
+response~\parencite{greshake2023indirect}. This is a low barrier to entry,
+which is one reason indirect injection is considered the more realistic threat
+in practice.
 
-In direct prompt injection, the attacker interacts with the model directly
-through crafted inputs. In indirect prompt injection, the attacker instead
-poisons external content that is later consumed by the system. The latter is
-generally considered the more realistic and dangerous scenario
-~\parencite{greshake2023indirect}.
-
-Attackers may possess varying levels of knowledge about the system.
-Strong-knowledge attackers have access to the surrounding context and prompt
-structure, whereas weak-knowledge attackers only know the content they control
-~\parencite{pandya2025astra}. Furthermore, attackers range from simple
-heuristic approaches to optimisation-based methods capable of generating
-adversarial inputs automatically~\parencite{zou2023universal}.
+Attacker knowledge varies across scenarios. A strong-knowledge attacker has
+access to the prompt structure and can craft precisely targeted injections. A
+weak-knowledge attacker controls only the injected content and operates without
+visibility into the surrounding
+context~\parencite{pandya2025astra}. On the technical side, attackers range
+from simple handcrafted prompts to fully automated optimisation-based methods
+such as GCG~\parencite{zou2023universal}.
 
 \subsection{Security Goals and Assumptions}
 
-A secure LLM-integrated system should preserve instruction integrity, protect
-sensitive information contained within the context window, and prevent
-unintended actions in agentic environments. Consequently, prompt injection
-defences aim to ensure that only trusted instructions influence model
-behaviour while limiting the ability of attackers to extract information or
-manipulate tool usage~\parencite{chen2025struq, chen2025secalign,
-debenedetti2024agentdojo}.
+A system that defends against prompt injection should ensure three things: that
+only trusted instructions influence model behaviour, that sensitive context
+data is protected, and that agentic systems do not take unintended
+actions~\parencite{chen2025struq, chen2025secalign, debenedetti2024agentdojo}.
 
-This paper focuses exclusively on text-based prompt injection in standard
-LLM-integrated deployments. Traditional software vulnerabilities,
-infrastructure compromise, and multimodal attacks are considered out of scope.
-Furthermore, all evaluated defences assume that the trusted instruction source
-remains under the control of the developer. If the system prompt itself is
-compromised, most current mitigation strategies become ineffective.
+This paper is scoped to text-based prompt injection in standard LLM-integrated
+deployments. Traditional software vulnerabilities, infrastructure-level
+attacks, and multimodal vectors are out of scope. A shared assumption across
+most defences is that the system prompt itself remains under developer control.
+If that assumption breaks --- if the trusted instruction source is compromised
+--- most current mitigations become ineffective.
 
-Given these assumptions and attacker capabilities, the question becomes how
-prompt injection attacks can be mitigated. One prominent approach attempts to
-restore the separation between instructions and data through structured query
-mechanisms. These defences are examined in the following section.
+With this threat model established, the following sections examine how the
+research community has approached mitigation, starting with defences that
+attempt to enforce a structural separation between instructions and data.
