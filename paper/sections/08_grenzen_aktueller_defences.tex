@@ -1,93 +1,84 @@
 \section{Limits of Current Defences}
 \label{sec:limits}
 
+The defences covered in the previous sections represent meaningful progress,
+but the research also makes clear that none of them fully solve the problem.
+This section examines why --- both in terms of how defences are evaluated and
+what happens when attackers target the defence mechanisms directly.
+
 \subsection{Evaluation Methodology Problems}
 
-A recurring issue in prompt injection defence research is that reported
-robustness often does not reflect realistic adversarial conditions.
-\textcite{jia2025critical} argue that many evaluations rely on assumptions
-that are too narrow to support the conclusions drawn from them.
+A recurring issue is that reported robustness often does not reflect realistic
+adversarial conditions. \textcite{jia2025critical} argue that many published
+evaluations rely on assumptions too narrow to support their conclusions.
 
-One common problem is attack diversity. Many studies primarily evaluate
-defences against heuristic attacks, such as manually written prompts that
-attempt to override system instructions. While these attacks provide a useful
-baseline, they do not represent adversaries who actively adapt their strategy
-to the defence being tested~\parencite{jia2025critical}.
+The first problem is \textit{attack diversity}. Most evaluations test defences
+against heuristic attacks --- handwritten prompts attempting to override system
+instructions. These provide a useful baseline, but they do not represent an
+attacker who knows what defence is in place and targets it
+specifically~\parencite{jia2025critical}.
 
-A second issue concerns prompt diversity. Several defences, including StruQ
-and SecAlign in their original evaluations, were tested using only a limited
-set of injected prompts. More comprehensive evaluations reveal considerably
-higher attack success rates than originally reported, suggesting that
-robustness can be overestimated when the range of attacks is too narrow
-~\parencite{jia2025critical}.
+The second is \textit{prompt diversity}. StruQ and SecAlign both reported
+strong results in their original evaluations, but those tests used a limited
+set of injection prompts. When evaluated against a broader range, success rates
+increase considerably~\parencite{jia2025critical}. The defence does not
+perform worse --- the evaluation is simply more representative.
 
-Finally, utility preservation is difficult to measure consistently. Different
-evaluation methodologies can lead to substantially different conclusions about
-the practical cost of a defence. As a result, models that appear secure and
-utility-preserving under one benchmark may perform considerably worse under
-more rigorous evaluation settings~\parencite{jia2025critical}.
+Finally, \textit{utility preservation} is difficult to measure consistently.
+Different benchmarks yield substantially different conclusions about how much
+capability a defence costs. A system can appear secure and functional under one
+evaluation and noticeably degraded under another~\parencite{jia2025critical},
+which makes fair comparison between defences difficult.
 
 \subsection{Adaptive Attacks}
 
-The clearest evidence that current defences are less robust than initially
-reported comes from adaptive attacks. Unlike standard attacks, adaptive
-attacks are specifically designed to target the defence mechanism itself.
+The clearest evidence that current defences are less robust than reported comes
+from adaptive attacks --- attacks designed specifically to target the defence
+mechanism rather than the model in general.
 
-\textcite{yang2025checkpointgcg} introduce Checkpoint-GCG, an attack that
-exploits intermediate fine-tuning checkpoints to construct adversarial suffixes
-that transfer to the final defended model. Their results demonstrate that
-SecAlign's apparent robustness against standard GCG does not imply that the
-underlying vulnerability has been eliminated. Instead, the attack simply
-exploits weaknesses that remain hidden under conventional evaluation
-conditions~\parencite{yang2025checkpointgcg}.
+\textcite{yang2025checkpointgcg} introduce Checkpoint-GCG, which exploits
+intermediate fine-tuning checkpoints to construct adversarial suffixes that
+transfer to the fully trained model. The results show that SecAlign's
+robustness against standard GCG does not imply the underlying vulnerability
+has been resolved --- the attack surface remains, but requires a more targeted
+approach to reach~\parencite{yang2025checkpointgcg}.
 
-A related approach is proposed by \textcite{pandya2025astra}. Their ASTRA
-attack targets the model's attention mechanism rather than output token
-probabilities. Experimental results show that ASTRA and its universal variant
-ASTRA++ achieve high success rates even under weak-knowledge assumptions,
-demonstrating that fine-tuning alone cannot reliably prevent prompt injection
-attacks~\parencite{pandya2025astra}.
-
-These results also highlight an important limitation of GCG as an evaluation
-tool. According to \textcite{pandya2025astra}, gradient-based optimisation
-provides only a weak signal against defended models. Consequently, poor
-performance of standard GCG should not necessarily be interpreted as evidence
-of strong robustness, but may instead reflect the limitations of the attack
-itself.
+\textcite{pandya2025astra} take a different approach with ASTRA, which targets
+the model's attention mechanism rather than output token probabilities. Both
+ASTRA and its universal variant ASTRA++ achieve high success rates even under
+weak-knowledge assumptions, demonstrating that fine-tuning alone is not
+sufficient to reliably prevent prompt injection~\parencite{pandya2025astra}.
+These results also raise questions about GCG as an evaluation tool: because
+gradient-based optimisation provides a weak signal against fine-tuned models,
+poor GCG performance does not necessarily indicate strong
+robustness~\parencite{pandya2025astra}.
 
 \subsection{Security and Utility Trade-Offs}
 
-Improved robustness does not come without cost. Every defence mechanism
-discussed in this paper introduces trade-offs between security and utility.
-
-Detection-based approaches may reduce attack success rates, but often suffer
-from false positives that negatively affect benign tasks
-~\parencite{debenedetti2024agentdojo, jia2025critical}. Fine-tuning-based
-defences such as StruQ and SecAlign also impose measurable capability losses
-when evaluated against stronger baselines~\parencite{jia2025critical}.
-
-More generally, robustness and instruction-following capability are inherently
-in tension. A model trained to distrust instructions contained within external
-data risks becoming overly cautious and incorrectly treating legitimate content
-as malicious. While approaches such as SecAlign alleviate this problem to some
-extent, the trade-off cannot be eliminated entirely
-~\parencite{chen2025secalign}.
+Every defence discussed in this paper introduces a trade-off between security
+and utility. Detection-based approaches reduce attack success rates but
+generate false positives that interfere with legitimate use
+cases~\parencite{debenedetti2024agentdojo, jia2025critical}. Fine-tuning
+approaches impose measurable capability losses~\parencite{jia2025critical}.
+The underlying reason is that robustness and instruction-following are in
+tension: a model trained to treat data-channel instructions with suspicion will
+sometimes apply that suspicion to legitimate inputs as well. SecAlign handles
+this better than StruQ, but the trade-off cannot be fully
+eliminated~\parencite{chen2025secalign}.
 
 \subsection{Why Prompt Injection Remains an Open Problem}
 
-The evidence reviewed in this section points to a consistent pattern.
-Defences that appear robust under standard evaluation conditions often weaken
-significantly when confronted with stronger attackers or more rigorous testing
-methodologies~\parencite{jia2025critical, yang2025checkpointgcg}.
+Across the research reviewed here, the same pattern recurs: defences that
+appear robust under standard evaluation conditions weaken significantly when
+tested against adaptive attackers or more comprehensive benchmark
+sets~\parencite{jia2025critical, yang2025checkpointgcg}.
 
-The deeper issue is structural. Prompt injection exploits one of the defining
-strengths of LLMs --- their ability to follow natural language instructions.
-As long as instructions and external data are processed within the same context
-window, the attack surface remains. Fine-tuning can increase the cost of a
-successful attack, but it cannot eliminate the underlying condition.
+The underlying reason is structural. Prompt injection exploits the core
+capability of LLMs --- following natural language instructions. As long as
+instructions and external data share the same context window, that attack
+surface exists. Fine-tuning increases the cost of a successful attack, but
+does not eliminate the condition that makes it possible.
 
-Consequently, no currently available defence provides complete protection
-against prompt injection. Rather than viewing prompt injection as an isolated
-model weakness, it should be understood as a broader system-level problem.
-This perspective motivates the practical deployment considerations discussed in
-the following section.
+No currently available defence provides complete protection against prompt
+injection. Understanding it as a system-level problem rather than a model-level
+one is what motivates the deployment considerations in the following section.
