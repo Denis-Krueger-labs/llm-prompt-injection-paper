@@ -2,7 +2,7 @@
 \label{sec:struq}
 \subsection{Introduction to structured queries}
 These next chapters will deal with concrete mechanisms and strategy to defend against prompt injection attacks.
-In this chapter we will start by introducing StruQ, a system for protecting against prompt injection attacks, proposed by Sizhe Chen.\\
+This chapter will start by introducing StruQ, a system for protecting against prompt injection attacks, proposed by Sizhe Chen, and continue with SecAlign, a defense \\
 The vulnerability exploited by prompt injections primarily stems from the model's inability to differentiate between trusted instructions and untrusted data. 
 This is addressed by StruQ through the Introduction of Structured Queries, a proposed system which turns the LLM's unsafe-by-design API, where everything in the prompt is to be seen as an instruction, into a safe-by-design API, which explicitly separates the instructions and data into two distinct channels \parencite{chen2025struq}.\\
 SecAlign is another relevant defense mechanism, which instead of separating data and instruction teaches the model both what desirable and undesirable output to various prompts look like. \parencite{chen2025secalign}  
