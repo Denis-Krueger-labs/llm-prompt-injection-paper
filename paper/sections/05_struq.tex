@@ -1,11 +1,10 @@
 \section{StruQ and SecAlign}
 \label{sec:struq}
-\subsection{Introduction to structured queries}
-These next chapters will deal with concrete mechanisms and strategy to defend against prompt injection attacks.
+These next two chapters will deal with concrete mechanisms and strategy to defend against prompt injection attacks.
 This chapter will start by introducing StruQ, a system for protecting against prompt injection attacks, proposed by Sizhe Chen, and continue with SecAlign, a defense \\
 The vulnerability exploited by prompt injections primarily stems from the model's inability to differentiate between trusted instructions and untrusted data. 
 This is addressed by StruQ through the Introduction of Structured Queries, a proposed system which turns the LLM's unsafe-by-design API, where everything in the prompt is to be seen as an instruction, into a safe-by-design API, which explicitly separates the instructions and data into two distinct channels \parencite{chen2025struq}.\\
-SecAlign is another relevant defense mechanism, which instead of separating data and instruction teaches the model both what desirable and undesirable output to various prompts look like. \parencite{chen2025secalign}  
+SecAlign is another relevant defense mechanism, which instead of separating data and instruction, teaches the model both what desirable and undesirable output to various prompts look like. \parencite{chen2025secalign}  
 \subsection{StruQ's Architecture}
 This separation is implemented via a secure front-end, which formats the inputs using reserved delimiter tokens, namely [INST] for instructions, [INPT] for data and [RESP] for model responses.
 The front-end also recursively filters all instances of these tokens from user data to avoid so-called "Completion Attacks", where attackers try to insert fake responses to trick the model \parencite{chen2025struq}.\\
@@ -28,8 +27,8 @@ Through this approach the model is taught to maximize the probability of secure 
 The fine-tuning suggested by SecAlign significantly increases the margin between the amounts of desirable and undesirable answers, by training the LLM to prefer secure answers, resulting in superior security compared to standard training \parencite{chen2025secalign}.
 \subsection{SecAlign's impact}
 This difference is notable even when compared to StruQ, as SecAlign manages to reduce the rate of success even of advanced attacks like GCG to ~10\%, an improvement of almost 50\%pt \parencite{chen2025secalign}.
-Another advantage of SecAlign is that it doesn't need additional work by users or providers, as the LLM is capable of applying labels such as "desirable" and "undesirable" on its own, based on task logic \parencite{chen2025secalign}.
-\subsection{Conclusion}
+Another advantage of SecAlign is that it doesn't need additional work by users or providers, as the LLM is capable of applying labels such as "desirable" and "undesirable" on its own, based on task logic \parencite{chen2025secalign}.\\\\
+
 Overall, StruQ and SecAlign represent a significant step towards making LLM-integrated applications/ systems more secure against prompt injection, pushing them towards a safe-by-design API/ architecture.
 Despite these accomplishments StruQ still not an optimal solution to the issue at hand, as StruQ is mainly suitable for programmatic applications, whilst still remaining vulnerable to more advanced attacks.
 Though SecAlign manages to be far more applicable than StruQ, it still is somewhat brittle against adaptive attacks like GCG, with approximately every tenth attack succeeding.

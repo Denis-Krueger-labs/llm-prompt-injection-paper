@@ -1,4 +1,26 @@
 \section{Benchmarks and Metrics}
 \label{sec:benchmarks}
+Having examined various defense mechanisms, the focus must shift to measuring their performance both in effectiveness and usability.
+A principled, modern approach to evaluation is critical, as many early claims of robustness relied largely on overly narrow testing conditions \parencite{jia2025critical}.
+\subsection{Metrics for Utility and Reliability}
+The primary challenge in defending LLMs is maintaining their general-purpose capabilities and usability while enforcing security.
+Thus, researchers often use relative utility, measured via Win Rates on benchmarks such as AlpacaEval \parencite{jia2025critical}.
+In this setup, a strong model like GPT-4 judges whether a defended model's output is better or worse than a reference model \parencite{chen2025struq}.\\
+However, relative win rates can be misleading; recent studies show that show that while StruQ and SecAlign maintained high win rates, they suffered significant drops in absolute utility when measured on ground-truth dataset based benchmarks like MMLU and OpenPromptInjection \parencite{jia2025critical}.\\
+For detection-based defenses, utility is further quantified by the False Positive Rate (FPR).
+A high FPR — misclassifying harmless prompts as attacks — renders a defense impractical by causing "user fatigue" and system rejection of legitimate queries \parencite{jia2025critical}.
+\subsection{Security Effectiveness Metrics}
+The primary standard for security evaluation is the Attack Success Rate (ASR), defined as the percentage of cases where the LLM follows an injected instruction instead of the developer's prompt \parencite{zou2023universal}.\\
+For complex tasks where output is not binary (e.g., summarization), researchers utilize the Attack Success Value (ASV).
+ASV employs similarity scores to quantify the degree to which a model's output aligns with the adversary's intent \parencite{jia2025critical}.\\
+Additionally, defenses based on preference optimization, like SecAlign, utilize the log-probability margin between desirable and undesirable outputs to measure the strength of the model's internal rejection of malicious instructions \parencite{chen2025secalign}.
+\subsection{Standardized Benchmark Suites}
+Recent research has moved toward large-scale, standardized suites to prevent over-optimization for specific attacks.\\
+OpenPromptInjection provides a diverse set of prompt-response pairs across seven fundamental Natural Language Processing (NLP) tasks.
+InjecAgent and AgentDojo are two benchmark suites which evaluate models in dynamic, tool-integrated environments where the tested prompt injections cannot lead to direct harm or data exfiltration, even if the injection succeeds \parencites{wu2024systemlevel}{zhong2025rtbas}.\\
+Crucially, evaluation must include adaptive attacks like ASTRA (a specialized attack against SecAlign and StruQ \parencite{pandya2025astra}), which specifically target the attention mechanisms of the model, as defenses often appear more robust on static datasets than they are in realistic adversarial settings\parencite{jia2025critical}.
 
-% TODO: Inhalt ergänzen.
+Overall, the evaluation of prompt injection defenses requires balancing security and utility.
+Metrics such as ASR, ASV, win rates, and FPR capture different aspects of this trade-off, while standardized benchmarks provide a more realistic basis for comparison across approaches.
+Via these benchmarks, multiple problems were discovered within established defenses, such as SecAlign and StruQ.\\
+This shows that proper assessments must combine utility and security metrics with diverse benchmark suites and adaptive attack scenarios to be able to provide a reliable picture of a defense's practical effectiveness.
