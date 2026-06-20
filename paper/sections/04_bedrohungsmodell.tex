@@ -11,7 +11,7 @@ This paper considers LLM-integrated applications where developer instructions
 and untrusted external content are processed within the same context window.
 This covers a wide range of deployed systems: RAG pipelines, AI assistants,
 document summarisation tools, and autonomous agents that interact with external
-APIs~\parencite{debenedetti2024agentdojo, ruparel2026survey}.
+APIs~\parencite{fspib2025, debenedetti2024agentdojo}.
 
 The defining characteristic of these systems is that the model receives both
 its instructions and potentially adversarial data in the same format, with no
@@ -25,9 +25,12 @@ fundamental condition that makes prompt injection possible.
 The attacker does not require access to the model or the application itself.
 It is sufficient to control any external source the system will eventually
 consume --- a website, an email, an uploaded document, or an API
-response~\parencite{greshake2023indirect}. This is a low barrier to entry,
-which is one reason indirect injection is considered the more realistic threat
-in practice.
+response~\parencite{greshake2023indirect}.
+
+For example, an attacker could hide malicious instructions inside a public web
+page, a phishing email, or a seemingly harmless document that is later
+processed by an LLM-integrated application. This low barrier to entry is one
+reason indirect injection is considered the more realistic threat in practice.
 
 Attacker knowledge varies across scenarios. A strong-knowledge attacker has
 access to the prompt structure and can craft precisely targeted injections. A
@@ -52,5 +55,6 @@ If that assumption breaks --- if the trusted instruction source is compromised
 --- most current mitigations become ineffective.
 
 With this threat model established, the following sections examine how the
-research community has approached mitigation, starting with defences that
-attempt to enforce a structural separation between instructions and data.
+research community has approached mitigation. The first major approach is to
+restore the distinction between instructions and data through structured query
+mechanisms and related fine-tuning strategies.

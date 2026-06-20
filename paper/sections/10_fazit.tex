@@ -1,24 +1,46 @@
 \section{Conclusion}
 \label{sec:fazit}
-The investigation into prompt injection defenses has transitioned from basic heuristic filters to sophisticated system-level frameworks and preference-optimized models.
-This final chapter summarizes the findings to answer the core research question regarding the effectiveness of instruction-data separation.
-\subsection{Summary of Structural Vulnerability}
-Prompt injection is a structural vulnerability inherent to any architecture that treats control instructions and user input as a single, concatenated token sequence.
-Because modern LLMs process natural language as a medium that simultaneously serves as both data and executable instruction, they lack the native proficiency required to recognize malicious intent.\\
-Furthermore, an inverse scaling effect often persists: as models become more intelligent and better at following complex instructions, they simultaneously become more effective at executing malicious payloads if the initial security boundary is bypassed.
-\subsection{Semantic vs. Architectural Separation}
-The research highlights a fundamental divide between semantic and architectural separation.
-Semantic separation, achieved via fine-tuning techniques like StruQ and SecAlign, significantly raises the cost of attacks and effectively blocks most heuristic manual injections.
-However, these defenses remain probabilistic and brittle against adaptive attacks, because they rely on learned behavior that can be subverted by architecture-aware optimization.\\
-In contrast, architectural separation through systems like f-secure and CaMeL offers formal security guarantees based on Information Flow Control.
-These systems treat the LLM as a black box and physically restrict the flow of untrusted data to the "planner," providing robustness that persists even as underlying models are upgraded.
-\subsection{The Adaptive and the Security "Arms Race"}
-The evolution of prompt injection constitutes an ongoing "arms race".\\
-Heuristic defenses are bypassed by optimization-based attacks like GCG.
-As fine-tuning defenses improved, new architecture-aware attacks like ASTRA emerged to target the internal attention matrices of transformers, breaking even the strongest preference-optimized models.
-These findings suggest that robustness is often a sign of a lack of strong optimization signals in tests, rather than a full remediation of the underlying vulnerability.
-\subsection{Future Outlook: Defense in Depth}
-Ultimately, there is no "silver bullet" for prompt injection.
-The path forward lies in defense in depth, combining model-level robustness with architectural isolation, least-privilege tool access, and human-in-the-loop approvals for sensitive operations.\\
-Future research must address the emerging challenges of multi-modal injections and increasingly autonomous agents, which expand the attack surface beyond traditional text-based interfaces.\\\\
-As Large Language Models become the backbone of autonomous digital systems, moving beyond a "unsafe-by-design" architecture is the ultimate challenge for the next generation of AI security. Establishing verifiable security guarantees while concurrently maximizing utility will be the prerequisite for the safe deployment of LLMs in load-bearing software infrastructure.
+
+The effectiveness of separating instructions and data depends strongly on how
+strictly that separation is enforced. Prompt injection is not merely an
+implementation flaw, but a structural vulnerability caused by the fact that
+modern LLMs process trusted instructions and untrusted data within the same
+context window.
+
+Separating instructions and data is therefore an important defence strategy,
+but not a complete solution. Fine-tuning approaches such as StruQ and SecAlign
+significantly increase the cost of successful attacks and provide strong
+protection against many heuristic prompt injection techniques. However, these
+defences remain probabilistic and can still be bypassed by adaptive attacks
+designed specifically to target their assumptions. Robustness observed under
+standard evaluation conditions therefore does not necessarily translate into
+reliable security in realistic adversarial settings.
+
+A central distinction is the difference between semantic and architectural
+separation. Semantic approaches attempt to teach the model to recognise and
+ignore malicious instructions, whereas architectural approaches enforce trust
+boundaries independently of model behaviour. Architectural separation offers
+stronger guarantees, but usually requires substantial changes to existing
+systems and is harder to integrate into practical deployments.
+
+Prompt injection should therefore be understood as a system-level problem rather
+than an isolated weakness of the model itself. As LLMs gain access to tools,
+external data sources, and increasingly autonomous workflows, the consequences
+of successful manipulation extend beyond incorrect outputs and can affect the
+surrounding system as a whole. Increased model capability does not
+automatically solve this issue; in some cases, more capable models may also be
+better at executing malicious instructions once the security boundary is
+bypassed.
+
+Consequently, no single defence currently provides complete protection against
+prompt injection. The most realistic strategy is defence in depth, combining
+model-level robustness with architectural isolation, least-privilege access
+control, monitoring, and human oversight for sensitive operations.
+
+In conclusion, separating instructions and data is a necessary step towards
+safer LLM-integrated systems, but it does not eliminate the underlying
+vulnerability. Prompt injection remains an open problem, and secure deployment
+will depend not only on advances in model capability, but also on stronger
+architectural guarantees, more rigorous evaluation methodologies, and careful
+attention to emerging threats such as multimodal prompt injection and
+increasingly autonomous agents.

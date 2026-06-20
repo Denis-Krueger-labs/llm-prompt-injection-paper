@@ -1,0 +1,26 @@
+\section*{Abstract}
+
+Large Language Models (LLMs) are increasingly integrated into applications that
+process external data and interact with tools, thereby expanding their attack
+surface. One of the most important threats to such systems is prompt injection,
+where malicious instructions embedded in untrusted content manipulate model
+behaviour. Since current LLM architectures process instructions and data within
+the same context window, distinguishing between trusted and untrusted
+information remains a fundamental challenge.
+
+The central question is how effective the separation of instructions and data
+is as a defence strategy against prompt injection attacks. To address this
+question, the work reviews the underlying threat model, structured query
+approaches such as StruQ and SecAlign, and additional architectural and
+system-level defence mechanisms. Current evaluation methodologies and recent
+adaptive attacks are also analysed to assess the limits of existing approaches.
+
+The results indicate that separating instructions and data significantly
+improves robustness against many attacks, but does not eliminate the underlying
+vulnerability. Fine-tuning-based approaches remain susceptible to adaptive
+attacks, while stronger guarantees generally require architectural isolation
+and defence-in-depth principles.
+
+Consequently, prompt injection remains an open problem. Secure deployment of
+LLM-integrated systems requires not only improved models, but also stronger
+system architectures and more rigorous evaluation methodologies.

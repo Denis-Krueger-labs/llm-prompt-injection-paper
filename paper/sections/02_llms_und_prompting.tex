@@ -1,15 +1,32 @@
-\section{LLMs und Prompting}
+\section{LLMs and Prompting}
 \label{sec:llms}
 
-Before the security implications of prompt injection attacks can be discussed and how they can be averted, it is important to understand the technology they use, namely LLMs and prompting.\\
-LLMs are a type of artificial intelligence model (AI) that is trained on large amounts of text data to understand and generate human-like language. 
-They are designed to predict the next pieces of a word, so called tokens, in a sequence.
-This allows them to generate coherent and contextually relevant text based on the input they receive.\\
-This input is called a prompt. It is split up into two parts: the user prompt and the system prompt.
-The user prompt is a set of instructions given to the AI model by the user, telling the LLM what it should do.
-The user prompt is then sent to the server which the AI model runs on and embedded into the system prompt.
-The system prompt is a set of instructions set by the developers of the LLM, which is used to guide the behavior of the model and ensure that it generates appropriate responses.
-It can, among other things, tell the model how to respond to different kinds of user prompts, whilst also ensuring, that the model does not generate harmful or inappropriate content.\\
-From this architecture, it becomes clear that the user prompt is a potential attack vector, as user prompts are embedded into the system prompt, combining them into a single prompt that is then processed by the LLM.
-If an attacker is able to manipulate their prompt in such a way that it overrides the instructions from the system prompt, they can potentially cause the model to generate inappropriate or confidential information\parencite{liu2023promptinjection}.\\
-This is where prompt injection attacks come into play, which we will discuss in more detail in the next section.\\
+Before discussing the security implications of prompt injection attacks and the
+mechanisms proposed to mitigate them, it is necessary to understand the
+underlying technology on which these attacks operate.
+
+Large Language Models (LLMs) are a class of artificial intelligence systems
+trained on large amounts of textual data. Their primary objective is to predict
+the next token in a sequence, enabling them to generate coherent and
+contextually relevant responses. Through this process, modern LLMs are capable
+of performing a wide variety of tasks, including summarisation, translation,
+question answering, and code generation.
+
+Interaction with an LLM occurs through prompts. In practical deployments, the
+model typically receives both developer-defined instructions and user-supplied
+input. The developer-defined instructions, commonly referred to as the
+\textit{system prompt}, specify the desired behaviour of the model, while the
+\textit{user prompt} contains the task or request supplied by the user. These
+inputs are combined into a single context window and processed together by the
+model.
+
+This architecture represents the foundation of prompt injection attacks. Since
+instructions and user input are processed within the same token sequence, the
+boundary between trusted instructions and untrusted content is not enforced
+structurally. Consequently, an attacker may attempt to craft inputs that
+override or interfere with the intended behaviour of the system
+~\parencite{liu2023promptinjection}.
+
+This absence of a structural boundary between trusted instructions and untrusted
+data is the fundamental condition that makes prompt injection attacks possible,
+as the following section examines in detail.
