@@ -1,6 +1,6 @@
 # LLM Prompt Injection Defences
 
-Seminar paper for the course **Expertise & Communication**  
+Seminar paper for the course **Expertise & Communication**
 THWS Würzburg-Schweinfurt · Summer Semester 2026
 
 **Authors:** Denis Krüger · Sebastian Mautner
@@ -9,90 +9,58 @@ THWS Würzburg-Schweinfurt · Summer Semester 2026
 
 ## Topic
 
-This paper analyzes **prompt injection attacks** in Large Language Model (LLM)
-systems and evaluates current defence mechanisms. LLMs are increasingly deployed
-in applications that process external, untrusted data emails, documents, web
-pages, API responses and this integration introduces a critical vulnerability:
-the inability to structurally separate instructions from data.
+This paper examines prompt injection attacks in Large Language Model (LLM)
+systems and evaluates the effectiveness and limitations of current defence
+mechanisms. Since modern LLM-integrated applications process trusted
+instructions and untrusted external data within the same context window, they
+lack a structural boundary between instructions and data, creating a unique
+class of vulnerabilities.
 
 The paper focuses on:
 
-- the underlying vulnerability caused by the instruction/data boundary problem
-- structured query approaches such as **StruQ** and **SecAlign**
-- detection-based and system-level defences
-- evaluation using recent benchmarks (AgentDojo, OpenPromptInjection, AlpacaFarm)
-- the limits of current protection mechanisms under adaptive attacks
+* the structural origin of prompt injection vulnerabilities
+* semantic separation approaches such as **StruQ** and **SecAlign**
+* architectural and system-level defences
+* evaluation methodologies and benchmark suites
+* the impact of adaptive attacks on current defences
+* the trade-off between robustness, utility, and deployment complexity
 
 ---
 
 ## Research Question
 
 > How effective is the separation of instructions and data as a defence strategy
-> against prompt injection, and where do the limits of current LLM prompt
-> injection defences lie?
+> against prompt injection attacks, and what do the limitations of current
+> defences imply for the secure deployment of LLM-integrated systems?
 
 ---
 
-## Sources
+## Main Findings
 
-### Core Papers
+The analysis suggests that:
 
-| Key | Title | Authors | Venue |
-|-----|-------|---------|-------|
-| StruQ | *StruQ: Defending Against Prompt Injection with Structured Queries* | Chen et al. | USENIX Security 2025 |
-| SecAlign | *SecAlign: Defending Against Prompt Injection with Preference Optimization* | Chen et al. | ACM CCS 2025 |
-| AgentDojo | *AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents* | Debenedetti et al. | NeurIPS 2024 |
-| Critical Evaluation | *A Critical Evaluation of Defenses against Prompt Injection Attacks* | Jia et al. | arXiv 2025 |
-| Checkpoint-GCG | *Checkpoint-GCG: Auditing and Attacking Fine-Tuning-Based Prompt Injection Defenses* | Yang et al. | arXiv 2025 |
-| ASTRA | *May I Have Your Attention? Breaking Fine-Tuning Based Prompt Injection Defenses Using Architecture-Aware Attacks* | Pandya et al. | arXiv 2025 |
-
-### Foundational
-
-| Key | Title | Authors | Venue |
-|-----|-------|---------|-------|
-| Perez & Ribeiro | *Ignore Previous Prompt: Attack Techniques for Language Models* | Perez & Ribeiro | arXiv 2022 |
-| Greshake et al. | *Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection* | Greshake et al. | AISec 2023 |
-| Zou et al. | *Universal and Transferable Adversarial Attacks on Aligned Language Models* | Zou et al. | arXiv 2023 |
-| Wallace et al. | *The Instruction Hierarchy: Training LLMs to Prioritize Privileged Instructions* | Wallace et al. | arXiv 2024 |
-| Liu et al. | *Prompt Injection Attack against LLM-Integrated Applications* | Liu et al. | arXiv 2023 |
-
-### Defences
-
-| Key | Title | Authors | Venue |
-|-----|-------|---------|-------|
-| PromptArmor | *PromptArmor: Simple yet Effective Prompt Injection Defenses* | Shi et al. | arXiv 2025 |
-| RTBAS | *RTBAS: Defending LLM Agents Against Prompt Injection and Privacy Leakage* | Zhong et al. | arXiv 2025 |
-| f-secure / IFC | *System-Level Defense against Indirect Prompt Injection Attacks: An Information Flow Control Perspective* | Wu et al. | arXiv 2024 |
-| Spotlighting | *Defending Against Indirect Prompt Injection Attacks With Spotlighting* | Hines et al. | arXiv 2024 |
-| Defeating by Design | *Defeating Prompt Injections by Design* | Debenedetti et al. | arXiv 2025 |
-| A-MemGuard | *A-MemGuard: A Proactive Defense Framework for LLM-Based Agent Memory* | Wei et al. | arXiv 2025 |
-
-### Benchmarks & Evaluation
-
-| Key | Title | Authors | Venue |
-|-----|-------|---------|-------|
-| InjecAgent | *InjecAgent: Benchmarking Indirect Prompt Injections in Tool-Integrated LLM Agents* | Zhan et al. | arXiv 2024 |
-| InjectBench | *InjectBench: An Indirect Prompt Injection Benchmarking Framework* | Kong | Master's Thesis, Virginia Tech 2024 |
-| FSPIB | *Prompt Injection Benchmark for Foundation Model Integrated Systems* | Anonymous | Under review, ICLR 2025 |
-| MPIB | *MPIB: A Benchmark for Medical Prompt Injection Attacks and Clinical Safety in LLMs* | Lee et al. | arXiv 2025 |
-
-### Real-World & Survey
-
-| Key | Title | Authors | Venue |
-|-----|-------|---------|-------|
-| P2SQL | *Prompt-to-SQL Injections in LLM-Integrated Web Applications: Risks and Defenses* | Pedro et al. | ICSE 2025 |
-| Survey | *Prompting for LLM Security and RAG: A Survey* | Ruparel et al. | IEEE ICAIC 2026 |
-| Mathew | *Enhancing Security in LLMs: A Comprehensive Review of Prompt Injection Attacks and Defenses* | Mathew | Preprint 2024 |
+* prompt injection is fundamentally a structural problem caused by the absence
+  of a hard boundary between instructions and data;
+* fine-tuning approaches such as **StruQ** and **SecAlign** significantly
+  improve robustness, but remain vulnerable to adaptive attacks;
+* architectural approaches based on information flow control and capability
+  isolation provide stronger guarantees, although at the cost of increased
+  complexity;
+* current evaluation methodology remains a challenge, as robustness often
+  depends strongly on the attacks and benchmarks used;
+* defence in depth is currently the most practical strategy for deploying
+  LLM-integrated systems securely.
 
 ---
 
-## Project Structure
+## Structure
 
 ```text
 paper/
 ├── main.tex
 ├── sections/
 │   ├── 00_titlepage.tex
+│   ├── 00_abstract.tex
 │   ├── 01_einleitung.tex
 │   ├── 02_llms_und_prompting.tex
 │   ├── 03_prompt_injection.tex
@@ -109,9 +77,31 @@ paper/
 
 ---
 
+## Key References
+
+### Fine-Tuning Defences
+
+* Chen et al. (2025), *StruQ: Defending Against Prompt Injection with Structured Queries*
+* Chen et al. (2025), *SecAlign: Defending Against Prompt Injection with Preference Optimization*
+
+### Architectural Defences
+
+* Wu et al. (2024), *System-Level Defense against Indirect Prompt Injection Attacks: An Information Flow Control Perspective*
+* Zhong et al. (2025), *RTBAS: Defending LLM Agents Against Prompt Injection and Privacy Leakage*
+* Debenedetti et al. (2025), *Defeating Prompt Injections by Design*
+
+### Evaluation and Adaptive Attacks
+
+* Debenedetti et al. (2024), *AgentDojo*
+* Jia et al. (2025), *A Critical Evaluation of Defenses against Prompt Injection Attacks*
+* Yang et al. (2025), *Checkpoint-GCG*
+* Pandya et al. (2025), *ASTRA*
+
+---
+
 ## Building the Paper
 
-Requires a LaTeX distribution with `biber` and `pdflatex`.
+Requires a LaTeX distribution with `pdflatex` and `biber`.
 
 ```bash
 pdflatex main.tex
