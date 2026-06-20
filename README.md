@@ -71,7 +71,7 @@ paper/
 │   ├── 08_grenzen_aktueller_defences.tex
 │   ├── 09_praxis_und_management.tex
 │   └── 10_fazit.tex
-├── figures/
+├── imgaes/
 └── references.bib
 ```
 
