@@ -1,9 +1,9 @@
 \section{Prompt Injection Attacks}
 \label{sec:attacks}
 
-With that foundation in place, it is possible to look at what prompt injection
-actually looks like in practice. The core mechanism is that an attacker gets
-malicious instructions into the model's context, and the model acts on them
+Prompt injection attacks exploit the architectural properties described in the
+previous section. The core mechanism is that an attacker introduces malicious
+instructions into the model's context, causing the model to act on them
 instead of the legitimate ones~\parencite{perez2022ignore}. Notably, this does
 not require any bug in the software --- the model is functioning as intended,
 it is simply following instructions from an unintended
@@ -32,14 +32,14 @@ agentic systems.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{images/direct_prompt_injection (1)}
+\includegraphics[width=\linewidth]{images/direct_prompt_injection(1).pdf}
 \caption{Direct prompt injection.}
 \label{fig:direct-prompt-injection}
 \end{figure}
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{images/indirect_prompt_injection (1)}
+\includegraphics[width=\linewidth]{images/indirect_prompt_injection(1).pdf}
 \caption{Indirect prompt injection.}
 \label{fig:indirect-prompt-injection}
 \end{figure}

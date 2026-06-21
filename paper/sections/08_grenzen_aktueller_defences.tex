@@ -53,6 +53,12 @@ gradient-based optimisation provides a weak signal against fine-tuned models,
 poor GCG performance does not necessarily indicate strong
 robustness~\parencite{pandya2025astra}.
 
+Taken together, these results suggest that the fundamental weakness of
+fine-tuning-based defences is not the failure of any individual method, but
+the fact that behavioural alignment itself provides no hard separation between
+instructions and data. Improvements in robustness therefore appear to increase
+the effort required for attacks rather than eliminate the underlying attack surface.
+
 \subsection{Security and Utility Trade-Offs}
 
 Every defence discussed in this paper introduces a trade-off between security
@@ -81,4 +87,5 @@ does not eliminate the condition that makes it possible.
 
 No currently available defence provides complete protection against prompt
 injection. Understanding it as a system-level problem rather than a model-level
-one is what motivates the deployment considerations in the following section.
+one has direct implications for secure deployment, which are discussed in the
+following section.
