@@ -1,83 +1,91 @@
-\section{Practical Implications and Deployment Considerations}
-\label{sec:praxis}
+\section{Limits of Current Defences}
+\label{sec:limits}
 
-\subsection{Prompt Injection as a System-Level Risk}
+The defences covered in the previous sections represent meaningful progress,
+but the research also makes clear that none of them fully solve the problem.
+This section examines why --- both in terms of how defences are evaluated and
+what happens when attackers target the defence mechanisms directly.
 
-Modern LLM deployments rarely operate in isolation. Instead, they are typically
-embedded within larger systems that may include retrieval pipelines, external
-APIs, memory modules, and tool execution environments. Consequently, a
-successful prompt injection does not merely influence the generated response,
-but can propagate into other components of the surrounding application.
+\subsection{Evaluation Methodology Problems}
 
-The practical impact of prompt injection therefore depends not only on the
-language model itself, but also on the capabilities exposed by the system in
-which it is deployed.
+A recurring issue is that reported robustness often does not reflect realistic
+adversarial conditions. \textcite{jia2025critical} argue that many published
+evaluations rely on assumptions too narrow to support their conclusions.
 
-This shifts the relevant question. Rather than asking whether the model can be
-manipulated, it is more useful to ask what an attacker can accomplish once
-manipulation occurs.
+The first problem is \textit{attack diversity}. Most evaluations test defences
+against heuristic attacks --- handwritten prompts attempting to override system
+instructions. These provide a useful baseline, but they do not represent an
+attacker who knows what defence is in place and targets it
+specifically~\parencite{jia2025critical}.
 
-For example, a read-only document summarisation system presents a much lower
-risk than an autonomous email assistant capable of sending messages or
-interacting with external services. The consequences of a successful injection
-therefore depend heavily on the capabilities exposed by the surrounding system.
+The second is \textit{prompt diversity}. StruQ and SecAlign both reported
+strong results in their original evaluations, but those tests used a limited
+set of injection prompts. When evaluated against a broader range, success rates
+increase considerably~\parencite{jia2025critical}. The defence does not
+perform worse --- the evaluation is simply more representative.
 
+Finally, \textit{utility preservation} is difficult to measure consistently.
+Different benchmarks yield substantially different conclusions about how much
+capability a defence costs. A system can appear secure and functional under one
+evaluation and noticeably degraded under another~\parencite{jia2025critical},
+which makes fair comparison between defences difficult.
 
-As AgentDojo demonstrates, the payoff from a successful
-injection scales with the capabilities of the surrounding
-system~\parencite{debenedetti2024agentdojo}. Real-world incidents such as the
-Slack AI attack illustrate that these consequences extend beyond the model
-itself~\parencite{chen2025secalign}.
+\subsection{Adaptive Attacks}
 
-\subsection{Defence in Depth}
+The clearest evidence that current defences are less robust than reported comes
+from adaptive attacks --- attacks designed specifically to target the defence
+mechanism rather than the model in general.
 
-Since no single mechanism provides reliable protection, current research
-increasingly recommends a layered approach. The objective is not to prevent
-every injection, but to ensure that a successful one cannot escalate into a
-critical incident.
+\textcite{yang2025checkpointgcg} introduce Checkpoint-GCG, which exploits
+intermediate fine-tuning checkpoints to construct adversarial suffixes that
+transfer to the fully trained model. The results show that SecAlign's
+robustness against standard GCG does not imply the underlying vulnerability
+has been resolved --- the attack surface remains, but requires a more targeted
+approach to reach~\parencite{yang2025checkpointgcg}.
 
-In practice, this means combining model-level defences with restricted tool
-permissions, sandboxed execution environments, monitoring, and human
-confirmation requirements for irreversible actions. No individual layer is
-sufficient on its own, but together they raise the cost of a successful attack
-and limit the blast radius if one occurs. This mirrors the established
-defence-in-depth principle from traditional software
-security~\parencite{chen2025secalign}.
+\textcite{pandya2025astra} take a different approach with ASTRA, which targets
+the model's attention mechanism rather than output token probabilities. Both
+ASTRA and its universal variant ASTRA++ achieve high success rates even under
+weak-knowledge assumptions, demonstrating that fine-tuning alone is not
+sufficient to reliably prevent prompt injection~\parencite{pandya2025astra}.
+These results also raise questions about GCG as an evaluation tool: because
+gradient-based optimisation provides a weak signal against fine-tuned models,
+poor GCG performance does not necessarily indicate strong
+robustness~\parencite{pandya2025astra}.
 
-\subsection{Deployment Trade-Offs}
+Taken together, these results suggest that the fundamental weakness of
+fine-tuning-based defences is not the failure of any individual method, but
+the fact that behavioural alignment itself provides no hard separation between
+instructions and data. Improvements in robustness therefore appear to increase
+the cost of attacks rather than eliminate the underlying attack surface.
 
-No currently available approach offers an ideal combination of security,
-usability, and ease of deployment. Architectural approaches based on information flow control generally offer stronger guarantees under their respective assumptions, but require substantial redesign of existing application pipelines~\parencite{wu2024systemlevel, zhong2025rtbas}.
-Fine-tuning approaches are easier to integrate but do not hold up well against
-adaptive attackers~\parencite{yang2025checkpointgcg}. 
+\subsection{Security and Utility Trade-Offs}
 
-This makes such approaches attractive for organisations seeking rapid
-deployment, but the resulting convenience comes at the cost of weaker security
-guarantees compared to more intrusive architectural solutions.
+Every defence discussed in this paper introduces a trade-off between security
+and utility. Detection-based approaches reduce attack success rates but
+generate false positives that interfere with legitimate use
+cases~\parencite{debenedetti2024agentdojo, jia2025critical}. Fine-tuning
+approaches impose measurable capability losses~\parencite{jia2025critical}.
+The underlying reason is that robustness and instruction-following are in
+tension: a model trained to treat data-channel instructions with suspicion will
+sometimes apply that suspicion to legitimate inputs as well. SecAlign handles
+this better than StruQ, but the trade-off cannot be fully
+eliminated~\parencite{chen2025secalign}.
 
-Detection systems add
-minimal operational overhead but both miss attacks and flag legitimate
-inputs~\parencite{jia2025critical}.
+\subsection{Why Prompt Injection Remains an Open Problem}
 
-In commercial environments, these trade-offs are harder to navigate. Pressure
-to deploy quickly and maintain ease of use often conflicts with conservative
-security design. As LLM systems take on more sensitive operations and broader
-tool access, the cost of underestimating prompt injection risks increases
-accordingly.
+Across the research reviewed here, the same pattern recurs: defences that
+appear robust under standard evaluation conditions weaken significantly when
+tested against adaptive attackers or more comprehensive benchmark
+sets~\parencite{jia2025critical, yang2025checkpointgcg}.
 
-\subsection{Future Directions}
+The underlying reason is structural. Prompt injection exploits the core
+capability of LLMs --- following natural language instructions. As long as
+instructions and external data share the same context window, that attack
+surface exists. Fine-tuning increases the cost of a successful attack, but
+does not eliminate the condition that makes it possible.
 
-The limitations discussed in the previous sections also highlight several
-directions for future research and system design.
-Stronger architectural isolation --- enforcing trust boundaries through system
-design rather than training --- is a more fundamental approach than continued
-fine-tuning improvements~\parencite{wu2024systemlevel, debenedetti2025defeating}.
-Evaluation methodology also needs to improve: adaptive attackers should be the
-baseline, not an edge case, and utility costs need to be measured
-consistently~\parencite{debenedetti2024agentdojo, fspib2025, jia2025critical}.
-Finally, increased model capability does not automatically improve security ---
-a more capable model that is successfully injected can also do more
-damage~\parencite{debenedetti2024agentdojo}.
-
-Prompt injection is not a solved problem. Current defences reduce the risk but
-do not eliminate the underlying vulnerability.
+No currently available defence provides complete protection against prompt
+injection. Understanding it as a system-level problem rather than a model-level
+one has direct implications for secure deployment, which are discussed in the
+following section.

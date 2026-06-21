@@ -18,13 +18,20 @@ strategy. Rather than relying on explicit separation through delimiter tokens,
 SecAlign trains the model to distinguish between desirable and undesirable
 responses to prompt-injected inputs~\parencite{chen2025secalign}.
 
-\subsection{StruQ Architecture}
+\subsection{StruQ's Architecture}
 
 StruQ implements this separation through a secure front-end that formats the
 input using reserved delimiter tokens, namely [INST] for instructions, [INPT]
 for data, and [RESP] for model responses. To prevent so-called completion
 attacks, instances of these tokens are recursively removed from user-provided
 content~\parencite{chen2025struq}.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{./figures/StruQFilter}
+\caption{Simplified architecture of StruQ~\parencite{chen2025struq}.}
+\end{figure}
 
 Because conventional LLMs are generally trained to follow instructions
 regardless of their position within the context window, StruQ introduces a
@@ -33,26 +40,21 @@ base model, the approach employs a specially augmented dataset designed to
 discourage the model from following instructions embedded in the data
 channel~\parencite{chen2025struq}.
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.85\linewidth]{./images/StruQFilter.png}
-    \caption{Simplified architecture of StruQ~\parencite{chen2025struq}.}
-\end{figure}
 
 \subsection{StruQ Impact and Limitations}
 
-Experimental results show that StruQ reduces the success rate of manually
-crafted attacks to below 2\% 
-~\parencite{chen2025struq}. However, the approach
-does not provide complete protection. More advanced attacks remain effective
-even against defended models.
+Experimental results show that StruQ reduces the success rate of heuristic
+attacks to below 2\%~\parencite{chen2025struq}. However, the approach does not
+provide complete protection. More advanced attacks remain effective even
+against defended models.
 
 One example is the Greedy Coordinate Gradient (GCG) attack, which generates
 adversarial token sequences designed to increase the likelihood that the model
-follows the injected instructions~\parencite{zou2023universal}. While StruQ reduces GCG attack success rates compared to undefended baselines
-(which suffer ASRs above 84\,\%), the attack still succeeds in 40\,\%--60\,\%
-of cases on several evaluated models --- well above any threshold of practical
-security~\parencite{chen2025struq, chen2025secalign}.
+follows the injected instructions~\parencite{zou2023universal}. While StruQ
+reduces GCG attack success rates compared to undefended baselines, which suffer
+ASRs above 84,\%, the attack still succeeds in 40,\%--60,\% of cases on
+several evaluated models, making it high enough to remain problematic in
+practical deployments~\parencite{chen2025struq, chen2025secalign}.
 
 Furthermore, StruQ is primarily suited for structured and programmatic
 applications. Its reliance on explicitly separated channels limits its
@@ -77,8 +79,8 @@ fine-tuning~\parencite{chen2025secalign}.
 
 Compared to StruQ, SecAlign achieves substantially improved robustness against
 optimisation-based attacks such as GCG. On instruction-tuned models, the
-maximum optimisation-based attack success rate drops from 27--45\,\% under
-StruQ to below 10\,\% under SecAlign, a reduction by a factor of more than
+maximum optimisation-based attack success rate drops from 27--45,\% under
+StruQ to below 10,\% under SecAlign, a reduction by a factor of more than
 four across all evaluated models~\parencite{chen2025secalign}. A further
 advantage of SecAlign is that it does not require users to explicitly label
 instructions and data, making it easier to integrate into existing
@@ -89,8 +91,8 @@ applications~\parencite{chen2025secalign}.
 Both StruQ and SecAlign demonstrate that fine-tuning can significantly improve
 robustness against prompt injection attacks. In particular, they show that
 explicitly modelling the distinction between instructions and data increases
-the cost of successful attacks and reduces the effectiveness of many heuristic
-techniques.
+the effort required for successful attacks and reduces the effectiveness of
+many heuristic techniques.
 
 However, neither approach provides complete protection. StruQ remains primarily
 suitable for structured applications and is vulnerable to optimisation-based
