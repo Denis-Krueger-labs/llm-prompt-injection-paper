@@ -9,22 +9,16 @@ APIs, memory modules, and tool execution environments. Consequently, a
 successful prompt injection does not merely influence the generated response,
 but can propagate into other components of the surrounding application.
 
-The practical impact of prompt injection therefore depends not only on the
-language model itself, but also on the capabilities exposed by the system in
-which it is deployed.
-
 The severity of a successful prompt injection therefore depends primarily on
 the capabilities granted to the surrounding system rather than the language
 model alone.
 
 For example, a read-only document summarisation system presents a much lower
 risk than an autonomous email assistant capable of sending messages or
-interacting with external services. The consequences of a successful injection
-therefore depend heavily on the capabilities exposed by the surrounding system.
+interacting with external services. 
 
 As AgentDojo demonstrates, the payoff from a successful injection scales with
-the capabilities of the surrounding
-system~\parencite{debenedetti2024agentdojo}. Real-world incidents such as the
+the capabilities available to the model~\parencite{debenedetti2024agentdojo}. Real-world incidents such as the
 Slack AI attack illustrate that these consequences extend beyond the model
 itself~\parencite{chen2025secalign}.
 
