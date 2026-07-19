@@ -1,41 +1,84 @@
-\documentclass[12pt, a4paper]{article}
+\documentclass[12pt,a4paper]{article}
 
-% Encoding & language
+% ── Encoding and language ─────────────────────────────────────────────────────
+
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[main=english,ngerman]{babel}
 
-% Typography
+% ── Typography ────────────────────────────────────────────────────────────────
+
 \usepackage{microtype}
 \usepackage{setspace}
+\usepackage{parskip}
+
 \onehalfspacing
 
-% Layout
-\usepackage[a4paper, margin=2.5cm]{geometry}
-\usepackage{parskip}  % space between paragraphs instead of indent
+% Gives LaTeX a little flexibility before producing overfull lines.
+\setlength{\emergencystretch}{2em}
 
-% Graphics & figures
+% ── Page layout ───────────────────────────────────────────────────────────────
+
+\usepackage[
+    a4paper,
+    margin=2.5cm
+]{geometry}
+
+% ── Graphics and figures ──────────────────────────────────────────────────────
+
+\usepackage{graphicx}
+\usepackage{float}
 \usepackage{tikz}
+
 \usetikzlibrary{arrows.meta}
 
-% Tables
-\usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{longtable}
-\usepackage{pdflscape}
-\usepackage{array}
-\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+% ── Tables ────────────────────────────────────────────────────────────────────
 
-% Quotations and bibliography
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{ragged2e}
+\usepackage{tabularx}
+
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+
+% Optional fixed-width, ragged-right column type:
+\newcolumntype{L}[1]{%
+    >{\RaggedRight\arraybackslash}p{#1}%
+}
+
+% ── Quotations and bibliography ───────────────────────────────────────────────
+
 \usepackage{csquotes}
+
 \usepackage[
-  backend=biber,
-  style=authoryear,
-  sorting=nyt
+    backend=biber,
+    style=authoryear,
+    sorting=nyt,
+    maxcitenames=2,
+    maxbibnames=99
 ]{biblatex}
+
 \addbibresource{references.bib}
 
-% Hyperlinks & PDF metadata
+% ── Header and footer ─────────────────────────────────────────────────────────
+
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{\small Krüger, Mautner}
+\rhead{\small LLM Prompt Injection Defences}
+\cfoot{\thepage}
+
+\setlength{\headheight}{14.5pt}
+
+% Avoid uppercase section names in headers if automatic marks are used later.
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+
+% ── Hyperlinks and PDF metadata ───────────────────────────────────────────────
+% Load hyperref late, after most other packages.
+
 \usepackage[
     colorlinks=true,
     linkcolor=black,
@@ -45,23 +88,18 @@
     pdfauthor={Denis Krüger, Sebastian Mautner}
 ]{hyperref}
 
-% Header/footer
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-\fancyhf{}
-\rhead{\small LLM Prompt Injection Defences}
-\lhead{\small Krüger, Mautner}
-\cfoot{\thepage}
-\setlength{\headheight}{14.5pt}
+\urlstyle{same}
 
-% ── Document ─────────────────────────────────────────────────────────────────
+% ── Document ──────────────────────────────────────────────────────────────────
 
 \begin{document}
 
 \input{sections/00_titlepage}
 \input{sections/00_abstract}
+
 \clearpage
 \tableofcontents
+
 \clearpage
 \input{sections/01_einleitung}
 \input{sections/02_llms_und_prompting}

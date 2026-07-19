@@ -65,8 +65,8 @@ paper/
 │   ├── 04_bedrohungsmodell.tex
 │   ├── 05_struq.tex
 │   ├── 06_limits_of_current_defences.tex
-│   ├── 09_praxis_und_management.tex
-│   └── 10_fazit.tex
+│   ├── 07_praxis_und_management.tex
+│   └── 08_fazit.tex
 ├── images/
 └── references.bib
 ```
