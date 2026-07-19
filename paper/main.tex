@@ -1,46 +1,84 @@
-\documentclass[12pt, a4paper]{article}
+\documentclass[12pt,a4paper]{article}
 
-% Encoding & language
+% ── Encoding and language ─────────────────────────────────────────────────────
+
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[english]{babel}  %  English primary
+\usepackage[main=english,ngerman]{babel}
 
-% Typography
+% ── Typography ────────────────────────────────────────────────────────────────
+
 \usepackage{microtype}
 \usepackage{setspace}
+\usepackage{parskip}
+
 \onehalfspacing
 
-% Layout
-\usepackage[a4paper, margin=2.5cm]{geometry}
-\usepackage{parskip}  % space between paragraphs instead of indent
+% Gives LaTeX a little flexibility before producing overfull lines.
+\setlength{\emergencystretch}{2em}
 
-% Math & symbols
-\usepackage{amsmath}
+% ── Page layout ───────────────────────────────────────────────────────────────
 
-% Graphics & figures
+\usepackage[
+    a4paper,
+    margin=2.5cm
+]{geometry}
+
+% ── Graphics and figures ──────────────────────────────────────────────────────
+
 \usepackage{graphicx}
 \usepackage{float}
-\graphicspath{{figures/}}
+\usepackage{tikz}
 
-% Tables
+\usetikzlibrary{arrows.meta}
+
+% ── Tables ────────────────────────────────────────────────────────────────────
+
+\usepackage{array}
 \usepackage{booktabs}
+\usepackage{ragged2e}
 \usepackage{tabularx}
 
-% Code listings
-\usepackage{listings}
-\usepackage{xcolor}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
 
-\lstset{
-    basicstyle=\ttfamily\small,
-    breaklines=true,
-    frame=single,
-    backgroundcolor=\color{gray!10},
-    keywordstyle=\color{blue},
-    commentstyle=\color{gray},
-    stringstyle=\color{teal},
+% Optional fixed-width, ragged-right column type:
+\newcolumntype{L}[1]{%
+    >{\RaggedRight\arraybackslash}p{#1}%
 }
 
-% Hyperlinks & PDF metadata
+% ── Quotations and bibliography ───────────────────────────────────────────────
+
+\usepackage{csquotes}
+
+\usepackage[
+    backend=biber,
+    style=authoryear,
+    sorting=nyt,
+    maxcitenames=2,
+    maxbibnames=99
+]{biblatex}
+
+\addbibresource{references.bib}
+
+% ── Header and footer ─────────────────────────────────────────────────────────
+
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{\small Krüger, Mautner}
+\rhead{\small LLM Prompt Injection Defences}
+\cfoot{\thepage}
+
+\setlength{\headheight}{14.5pt}
+
+% Avoid uppercase section names in headers if automatic marks are used later.
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+
+% ── Hyperlinks and PDF metadata ───────────────────────────────────────────────
+% Load hyperref late, after most other packages.
+
 \usepackage[
     colorlinks=true,
     linkcolor=black,
@@ -50,45 +88,29 @@
     pdfauthor={Denis Krüger, Sebastian Mautner}
 ]{hyperref}
 
-% Bibliography
-\usepackage[
-  backend=biber,
-  style=authoryear,
-  sorting=nyt
-]{biblatex}
-\addbibresource{references.bib}
+\urlstyle{same}
 
-% Header/footer
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-\fancyhf{}
-\rhead{\small LLM Prompt Injection Defences}
-\lhead{\small Krüger, Mautner}
-\cfoot{\thepage}
-
-% ── Document ─────────────────────────────────────────────────────────────────
+% ── Document ──────────────────────────────────────────────────────────────────
 
 \begin{document}
 
 \input{sections/00_titlepage}
-
-
-
-\newpage
 \input{sections/00_abstract}
-\newpage
+
+\clearpage
+\tableofcontents
+
+\clearpage
 \input{sections/01_einleitung}
 \input{sections/02_llms_und_prompting}
 \input{sections/03_prompt_injection}
 \input{sections/04_bedrohungsmodell}
 \input{sections/05_struq}
-\input{sections/06_weitere_defences}
-\input{sections/07_benchmarks_und_metriken}
-\input{sections/08_grenzen_aktueller_defences}
-\input{sections/09_praxis_und_management}
-\input{sections/10_fazit}
+\input{sections/06_limits_of_current_defences}
+\input{sections/07_praxis_und_management}
+\input{sections/08_fazit}
 
-\newpage
+\clearpage
 \printbibliography[heading=bibintoc]
 
 \end{document}

@@ -1,60 +1,133 @@
 \section{Threat Model}
 \label{sec:threat}
 
-To evaluate defences meaningfully, it is necessary to be precise about the
-assumed system and attacker. The effectiveness of any defence depends on what
-capabilities an attacker has and what the target system looks like.
+Prompt-injection evaluations differ in attacker access, knowledge, and delivery
+conditions. A defence that resists malicious text in a document may not resist
+an attack constructed using internal model information or saved fine-tuning
+states. This section defines the assumptions used to interpret the evaluations
+of StruQ, SecAlign, and later adaptive attacks.
 
 \subsection{System Model}
+\label{subsec:system-model}
 
-This paper considers LLM-integrated applications where developer instructions
-and untrusted external content are processed within the same context window.
-This covers a wide range of deployed systems: RAG pipelines, AI assistants,
-document summarisation tools, and autonomous agents that interact with external
-APIs~\parencite{fspib2025, debenedetti2024agentdojo}.
+The considered application combines a trusted task instruction with untrusted
+direct input or externally retrieved content. An LLM processes the resulting
+context and either returns a response or proposes an action through a connected
+tool. Attacker-controlled content does not acquire the authority of the user or
+application operator merely because it is processed in a session that can access
+their data or credentials
+\parencites{greshake2023indirect}{debenedetti2024agentdojo}.
 
-The defining characteristic of these systems is that the model receives both
-its instructions and potentially adversarial data in the same format, with no
-built-in mechanism to distinguish between them~\parencite{chen2025struq}. A
-malicious instruction embedded in a retrieved document is structurally
-indistinguishable from a legitimate developer instruction, which is the
-fundamental condition that makes prompt injection possible.
+Figure~\ref{fig:threat-model} shows the relevant trust transitions. Generated
+responses may be returned to the user, whereas consequential tool actions should
+pass through an external policy and authorisation gate. These controls limit the
+consequences of model failure but are not assumed to make the model itself
+resistant to injection.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={draw, rounded corners, align=center, text width=2.25cm,
+                    minimum height=0.9cm},
+        trusted/.style={box, thick},
+        untrusted/.style={box, dashed},
+        flow/.style={-{Latex[length=2.2mm]}, thick}
+    ]
+        \node[trusted] (instruction) at (1.3,1.5)
+            {Trusted instruction\\and policy};
+        \node[untrusted] (external) at (1.3,-1.5)
+            {Untrusted direct input\\or external content};
+        \node[box] (application) at (4.6,0)
+            {Application\\context assembly};
+        \node[box] (llm) at (7.8,0)
+            {Large Language\\Model};
+        \node[box] (output) at (10.9,1.5)
+            {Generated response\\to user};
+        \node[trusted, text width=2.5cm] (policy) at (10.9,-1.5)
+            {Policy and\\authorisation gate};
+        \node[box, text width=1.8cm] (tool) at (13.8,-1.5)
+            {Tool or\\service};
+
+        \draw[flow] (instruction) -- (application);
+        \draw[flow] (external) -- (application);
+        \draw[flow] (application) -- (llm);
+        \draw[flow] (llm) -- (output);
+        \draw[flow] (llm) -- (policy);
+        \draw[flow] (policy) -- (tool);
+    \end{tikzpicture}
+    \caption[Threat model for an LLM-integrated application]{Simplified threat
+    model for an LLM-integrated application. Trusted instructions and
+    untrusted content are assembled into the model context. Generated responses
+    may be returned to the user, while proposed tool actions pass through a
+    policy and authorisation gate. Original schematic based on
+    \textcite{greshake2023indirect} and
+    \textcite{debenedetti2024agentdojo}.}
+    \label{fig:threat-model}
+\end{figure}
 
 \subsection{Attacker Model}
+\label{subsec:attacker-model}
 
-The attacker does not require access to the model or the application itself.
-It is sufficient to control any external source the system will eventually
-consume --- a website, an email, an uploaded document, or an API
-response~\parencite{greshake2023indirect}.
+The attacker controls at least one of the untrusted delivery channels described
+in Section~\ref{subsec:direct-indirect}. The delivery channel is considered
+separately from the access used to construct the payload: an attack created
+with white-box access may still be delivered indirectly through ordinary
+external content.
 
-For example, an attacker could hide malicious instructions inside a public web
-page, a phishing email, or a seemingly harmless document that is later
-processed by an LLM-integrated application. This low barrier to entry is one
-reason indirect injection is considered the more realistic threat in practice.
+A \emph{black-box} attacker can query the target or observe its output but
+cannot access model internals. A \emph{grey-box} attacker has partial
+information or access to a related surrogate model, which may support transfer
+attacks. A \emph{white-box} attacker has the internal information required by
+the chosen optimisation method.
 
-Attacker knowledge varies across scenarios. A strong-knowledge attacker has
-access to the prompt structure and can craft precisely targeted injections. A
-weak-knowledge attacker controls only the injected content and operates without
-visibility into the surrounding
-context~\parencite{pandya2025astra}. On the technical side, attackers range
-from simple handcrafted prompts to fully automated optimisation-based methods
-such as GCG~\parencite{zou2023universal}.
+As described in Section~\ref{subsec:attack-construction}, GCG uses model
+gradients. Checkpoint-GCG additionally requires fine-tuning checkpoints, which
+are saved intermediate states of the model, while ASTRA also uses attention
+information
+\parencites{zou2023universal}
+             {yang2025checkpointgcg}
+             {pandya2025astra}.
 
-\subsection{Security Goals and Assumptions}
+Model access does not describe every attacker capability. Knowledge of the
+trusted context, knowledge of the deployed defence, and the available delivery
+channel should therefore be reported as separate dimensions. This distinction
+is important when comparing manually constructed attacks with adaptive
+evaluations that explicitly target the defence
+\parencites{greshake2023indirect}
+             {zou2023universal}
+             {yang2025checkpointgcg}
+             {pandya2025astra}.
 
-A system that defends against prompt injection should ensure three things: that
-only trusted instructions influence model behaviour, that sensitive context
-data is protected, and that agentic systems do not take unintended
-actions~\parencite{chen2025struq, chen2025secalign, debenedetti2024agentdojo}.
+\subsection{Security Goals}
+\label{subsec:security-goals}
 
-This paper is scoped to text-based prompt injection in standard LLM-integrated
-deployments. Traditional software vulnerabilities, infrastructure-level
-attacks, and multimodal vectors are out of scope. A shared assumption across
-most defences is that the system prompt itself remains under developer control.
-If that assumption breaks --- if the trusted instruction source is compromised
---- most current mitigations become ineffective.
+The threat model considers three principal security goals.
+\emph{Instruction integrity} requires untrusted content to remain data rather
+than acquire authority to override trusted instructions or security policy.
+\emph{Confidentiality} requires protected context to be disclosed only to
+authorised recipients. \emph{Action integrity} requires tool calls and
+security-relevant parameters to remain within the authority granted by the
+application
+\parencites{chen2025struq}
+             {chen2025secalign}
+             {fspib2025}
+             {debenedetti2024agentdojo}.
 
-With this threat model established, the following sections examine how the
-research community has approached mitigation. The first major approach is to
-restore the distinction between instructions and data through structured query
-mechanisms and related fine-tuning strategies.
+The target-output Attack Success Rate used in many model-level evaluations is
+primarily a proxy for instruction-integrity failure. It does not by itself
+demonstrate confidential-data disclosure or unauthorised tool execution.
+System-level evaluations must therefore measure the actual security consequence
+in addition to target-string compliance
+\parencites{jia2025critical}{debenedetti2024agentdojo}.
+
+\subsection{Assumptions and Scope}
+\label{subsec:threat-scope}
+
+The analysis covers runtime, text-based prompt injection delivered through
+direct user input or external content processed by an otherwise uncompromised
+application. The trusted instruction source, application policy, model, and
+defence implementation are assumed not to have been directly compromised.
+
+Multimodal injection, training-data poisoning, persistent memory compromise,
+denial of service, malicious insiders, model-provider compromise, and direct
+application or infrastructure exploitation are outside the scope of this paper.

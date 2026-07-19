@@ -1,0 +1,33 @@
+\section{Conclusion}
+\label{sec:fazit}
+
+The effectiveness of learned instruction--data separation depends on the attack
+and evaluation setting. In their original evaluations, StruQ and SecAlign
+substantially reduce success against the tested handcrafted attacks. Standard
+optimisation-based attacks produce mixed results, with the final SecAlign study
+showing a strong within-study improvement over StruQ. Broader and
+defence-adaptive white-box evaluations nevertheless find successful bypasses of
+both approaches. Whether those audit results transfer to closed, dynamically
+configured production systems remains an empirical question.
+
+The evidence therefore supports mitigation, not complete prevention. StruQ and
+SecAlign learn to prioritise a trusted channel, but the decision remains part of
+probabilistic model behaviour. The reviewed bypasses show that these defences do
+not establish a demonstrated deterministic or independently enforced security
+boundary under the evaluated conditions. They do not prove that every present
+or future model-level defence is impossible.
+
+Secure deployment must consequently constrain model failures at the system
+level. The source should be preserved, tools and credentials should follow least
+privilege, security-relevant parameters should be checked outside the model, and
+high-impact actions should pass an independent policy or approval step.
+Sandboxing, protected monitoring, realistic adversarial testing, and incident
+response provide containment, detection, and recovery rather than substituting
+for access control.
+
+In conclusion, separating instructions and data is a necessary step towards safer LLM 
+integrated systems, but it does not eliminate the underlying vulnerability. Prompt injection
+remains an open problem, and secure deployment will depend not only on advances in
+model capability, but also on stronger architectural guarantees, more rigorous evaluation
+methodologies, and careful attention to emerging threats such as increasingly 
+autonomous agents.

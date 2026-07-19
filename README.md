@@ -10,18 +10,16 @@ THWS Würzburg-Schweinfurt · Summer Semester 2026
 ## Topic
 
 This paper examines prompt injection attacks in Large Language Model (LLM)
-systems and evaluates the effectiveness and limitations of current defence
-mechanisms. Since modern LLM-integrated applications process trusted
-instructions and untrusted external data within the same context window, they
-lack a structural boundary between instructions and data, creating a unique
-class of vulnerabilities.
+systems. It uses StruQ and SecAlign as focused case studies of learned
+instruction--data separation, compares their original evaluations with broader
+and defence-adaptive studies, and derives system-level deployment implications.
 
 The paper focuses on:
 
-* the structural origin of prompt injection vulnerabilities
+* the conditions that enable prompt injection vulnerabilities
 * semantic separation approaches such as **StruQ** and **SecAlign**
-* architectural and system-level defences
-* evaluation methodologies and benchmark suites
+* a taxonomy of model-, application-, and system-level defences
+* evaluation methodology and cross-benchmark limitations
 * the impact of adaptive attacks on current defences
 * the trade-off between robustness, utility, and deployment complexity
 
@@ -29,9 +27,10 @@ The paper focuses on:
 
 ## Research Question
 
-> How effective is the separation of instructions and data as a defence strategy
-> against prompt injection attacks, and what do the limitations of current
-> defences imply for the secure deployment of LLM-integrated systems?
+> How effectively do learned instruction--data separation approaches mitigate
+> prompt injection under the evaluated attacker models, and what system-level
+> controls are required when they do not provide an independently enforced
+> security boundary?
 
 ---
 
@@ -39,17 +38,16 @@ The paper focuses on:
 
 The analysis suggests that:
 
-* prompt injection is fundamentally a structural problem caused by the absence
-  of a hard boundary between instructions and data;
-* fine-tuning approaches such as **StruQ** and **SecAlign** significantly
-  improve robustness, but remain vulnerable to adaptive attacks;
-* architectural approaches based on information flow control and capability
-  isolation provide stronger guarantees, although at the cost of increased
-  complexity;
-* current evaluation methodology remains a challenge, as robustness often
-  depends strongly on the attacks and benchmarks used;
-* defence in depth is currently the most practical strategy for deploying
-  LLM-integrated systems securely.
+* learned separation can substantially reduce attack success under the tested
+  conditions, but remains model-mediated and probabilistic;
+* adaptive white-box studies bypass the evaluated **StruQ** and **SecAlign**
+  models, without proving that all model-level defences are impossible;
+* results from different papers are not directly comparable when their models,
+  attacks, budgets, datasets, success rules, or utility baselines differ;
+* externally enforced authorisation, least privilege, containment, monitoring,
+  and incident response are needed to limit the consequences of model failure;
+* stronger architectural guarantees remain conditional on correct policies,
+  labels, wrappers, and trusted enforcement components.
 
 ---
 
@@ -66,12 +64,10 @@ paper/
 │   ├── 03_prompt_injection.tex
 │   ├── 04_bedrohungsmodell.tex
 │   ├── 05_struq.tex
-│   ├── 06_weitere_defences.tex
-│   ├── 07_benchmarks_und_metriken.tex
-│   ├── 08_grenzen_aktueller_defences.tex
-│   ├── 09_praxis_und_management.tex
-│   └── 10_fazit.tex
-├── imgaes/
+│   ├── 06_limits_of_current_defences.tex
+│   ├── 07_praxis_und_management.tex
+│   └── 08_fazit.tex
+├── images/
 └── references.bib
 ```
 
@@ -87,7 +83,6 @@ paper/
 ### Architectural Defences
 
 * Wu et al. (2024), *System-Level Defense against Indirect Prompt Injection Attacks: An Information Flow Control Perspective*
-* Zhong et al. (2025), *RTBAS: Defending LLM Agents Against Prompt Injection and Privacy Leakage*
 * Debenedetti et al. (2025), *Defeating Prompt Injections by Design*
 
 ### Evaluation and Adaptive Attacks
@@ -101,11 +96,14 @@ paper/
 
 ## Building the Paper
 
-Requires a LaTeX distribution with `pdflatex` and `biber`.
+Requires a LaTeX distribution with `pdflatex` and `biber`. Run the commands from
+the `paper/` directory because the input and bibliography paths are relative to
+that directory.
 
 ```bash
-pdflatex main.tex
+cd paper
+pdflatex -interaction=nonstopmode -halt-on-error -file-line-error main.tex
 biber main
-pdflatex main.tex
-pdflatex main.tex
+pdflatex -interaction=nonstopmode -halt-on-error -file-line-error main.tex
+pdflatex -interaction=nonstopmode -halt-on-error -file-line-error main.tex
 ```

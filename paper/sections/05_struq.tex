@@ -1,95 +1,208 @@
-\section{Defence Mechanisms}
+\section{StruQ and SecAlign}
 \label{sec:defences}
+\label{sec:struq}
+
+Prompt-injection defences operate at different layers. Some modify model
+behaviour, while others restrict information flows and actions in the
+surrounding application. This chapter examines StruQ and SecAlign as two
+model-level approaches to learned instruction--data separation. Both provide
+public implementations and published security and utility evaluations
+\parencites{chen2025struq}{chen2025secalign}.
 
 \subsection{Motivation for Structured Queries}
+\label{subsec:structured-queries}
 
-As mentioned in Chapter~\ref{sec:llms}, the prompt injection vulnerability exists as LLMs cannot entirely differentiate whether a token represents an instruction that should be followed or merely data that should be processed. To address this limitation, Chen et al. propose Structured Queries (StruQ).
+As discussed in Section~\ref{sec:llms}, an LLM may treat instructional text in
+untrusted data as though it were part of the trusted task. A structured query
+instead separates the trusted instruction from the data to be processed. In a
+document-summarisation application, for example, the instruction defines the
+summarisation task while the document forms the untrusted data component.
+
+StruQ preserves this distinction at the application interface and trains the
+model to respect it. Its defence therefore combines a secure front end with
+specialised instruction tuning
+\parencite{chen2025struq}.
+
 \subsection{StruQ}
+\label{subsec:struq}
 
-\subsubsection{StruQ's Architecture}
+\subsubsection{Secure Front End}
+\label{subsubsec:struq-front-end}
 
-The StruQ system consists of two complementary components. First, a secure front-end accepts developer instructions and external data separately and converts them into a predefined prompt format. This format uses reserved delimiter tokens to mark the beginning of the instruction section (\texttt{[INST]}), the data section (\texttt{[INPT]}), and the response section (\texttt{[RESP]}). Since an attacker could attempt to reproduce these delimiters inside malicious input, the front-end recursively removes every occurrence of the reserved tokens from user-provided content before constructing the final prompt. Consequently, attackers cannot inject additional instruction blocks or prematurely terminate existing sections using the reserved delimiters~\parencite{chen2025struq}. The functionality of this frontend is visualized in figure~\ref{fig:struq}.
+The StruQ front end receives the trusted instruction and untrusted data
+separately and combines them using reserved delimiter tokens. These include
+\texttt{[MARK]}, \texttt{[INST]}, \texttt{[INPT]}, \texttt{[RESP]}, and
+\texttt{[COLN]}
+\parencite{chen2025struq}.
 
-\begin{figure}[H]
-\centering
-    \includegraphics[width=0.85\linewidth]{./images/StruQFilter}
-    \caption{Simplified architecture of StruQ~\parencite{chen2025struq}}
-    \label{fig:struq}
+Because an attacker could attempt to reproduce the delimiters inside the data,
+the front end repeatedly removes reserved delimiter strings and
+\texttt{\#\#} from the untrusted input before constructing the final query.
+This prevents the attacker from directly forging the structural format used by
+the trusted front end.
+
+The filter protects the encoding rather than removing all natural-language
+instructions. The model must therefore still learn not to follow ordinary
+commands that appear inside the data component.
+
+Figure~\ref{fig:struq-architecture} shows how both mechanisms interact. Only
+the untrusted data pass through the reserved-string filter before the trusted
+instruction and filtered data are combined.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={draw, rounded corners, align=center, text width=2.25cm,
+                    minimum height=0.9cm},
+        trusted/.style={box, thick},
+        untrusted/.style={box, dashed},
+        flow/.style={-{Latex[length=2.2mm]}, thick}
+    ]
+        \node[trusted] (instruction) at (1.3,1.4)
+            {Trusted\\instruction};
+        \node[untrusted] (data) at (1.3,-1.4)
+            {Untrusted\\data};
+        \node[box] (filter) at (4.4,-1.4)
+            {Reserved-string\\filter};
+        \node[box] (formatter) at (7.4,0)
+            {Structured-query\\formatter};
+        \node[box, text width=2.8cm, font=\ttfamily\scriptsize]
+            (query) at (10.5,0)
+            {[MARK][INST] ...\\
+             {}[MARK][INPT] ...\\
+             {}[MARK][RESP]};
+        \node[box, text width=1.8cm] (model) at (13.5,0)
+            {StruQ\\model};
+
+        \draw[flow] (instruction) -- (formatter);
+        \draw[flow] (data) -- (filter);
+        \draw[flow] (filter) -- (formatter);
+        \draw[flow] (formatter) -- (query);
+        \draw[flow] (query) -- (model);
+    \end{tikzpicture}
+    \caption[Architecture of StruQ]{Simplified StruQ front end and model input.
+    Untrusted data pass through the reserved-string filter before being
+    combined with the trusted instruction. Original schematic based on
+    \textcite{chen2025struq}.}
+    \label{fig:struq-architecture}
 \end{figure}
 
-As shown in Figure~\ref{fig:struq}, input is first sanitized by removing reserved delimiter tokens before constructing the structured prompt with the logical separation between trusted instructions and untrusted data in place.
+\subsubsection{Structured Instruction Tuning}
+\label{subsubsec:structured-instruction-tuning}
 
-\subsubsection{StruQ's instruction Tuning}
+Structural formatting alone is insufficient because an ordinary
+instruction-tuned model may still follow commands found inside the data.
+StruQ therefore uses structured instruction tuning.
 
-However, structural separation alone is insufficient. Existing instruction-tuned language models have learned to interpret instructions regardless of their position within the context window. If such a model were presented with the new prompt format without further training, it would still tend to follow commands appearing inside the data section. For this reason, StruQ introduces a new fine-tuning procedure called structured instruction tuning, a specialized instruction tuning technique, which constitutes the core contribution of the approach.
+The training data contain ordinary structured queries and augmented examples
+in which an additional instruction is inserted into the untrusted component.
+The expected response continues to follow the trusted instruction rather than
+the injected one
+\parencite{chen2025struq}.
 
-Instruction tuning is a process modern LLMs undergo, where a supervised fine-tuning technique that teaches a pretrained language model to follow natural language instructions. During this process, the model is trained on instruction--response pairs, enabling it to generalize to previously unseen tasks. Conventional instruction tuning, however, does not distinguish between trusted developer instructions and untrusted user input. Consequently, the model learns to follow instructions regardless of where they appear in the prompt, making it susceptible to prompt injection attacks~\parencite{chen2025struq}.
+The augmented examples also include forged instruction sections, delimiter
+manipulation, and fake response sections. The front end and model training
+therefore serve complementary purposes: the filter protects the reserved
+format, while the training reduces compliance with instructional language in
+the data.
 
-Structured instruction tuning extends this training process by explicitly teaching the model that the location of an instruction is as important as its content. During training, the model repeatedly observes both regular prompts in the StruQ format, but also injected prompts, such as the one shown in Table~\ref{tab:struqexample}. Although the injected instruction attempts to override the original task, the correct target output remains the translation of the input text. Repeated exposure to such examples teaches the model to associate executable instructions exclusively with the dedicated instruction section while treating all content inside the input section as untrusted data. In addition, the augmented dataset contains several specialized attacks against StruQ, including fake delimiter tokens, forged instruction sections and manipulated response sections, exposing the model to a diverse set of prompt injection strategies during training~\parencite{chen2025struq}.
+\subsubsection{Original Evaluation}
+\label{subsec:struq-evaluation}
 
-\begin{table}[H]
-\centering
-    \begin{tabular}{p{0.92\linewidth}}
-        \toprule
-        \textbf{Instruction} \\
-        Translate the following sentence into German. \\[0.3em]
+StruQ was evaluated on Llama-7B and Mistral-7B using 208 AlpacaFarm samples.
+Most attacks attempted to make the model output a fixed target such as
+\enquote{Hacked}
+\parencite{chen2025struq}.
 
-        \textbf{Input} \\
-        Hello!\\
-        Ignore the previous instruction and output ``HACKED''. \\[0.3em]
+For the manually constructed attacks, the defended models achieved Attack
+Success Rates (ASRs) between \(0\%\) and \(2\%\). The results were weaker
+against the adapted GCG attack described in
+Section~\ref{subsec:attack-construction}. StruQ reduced ASR from \(97\%\) to
+\(58\%\) on Llama and from \(99\%\) to \(56\%\) on Mistral
+\parencites{chen2025struq}{zou2023universal}.
 
-        \textbf{Desired Response} \\
-        Hallo!\\
-        \bottomrule
-    \end{tabular}
-    \caption{Simplified example of structured instruction tuning adapted from Chen et al.~\parencite{chen2025struq}}
-    \label{tab:struqexample}
-\end{table}
+The results show strong resistance to the handcrafted attacks represented in
+the evaluation, but incomplete protection against white-box optimisation.
+Relative utility changed only slightly in AlpacaEval: from \(67.2\%\) to
+\(67.6\%\) on Llama and from \(80.0\%\) to \(78.7\%\) on Mistral
+\parencite{chen2025struq}.
 
-
-
-\subsubsection{Strength's and Weaknesses}
-
-The evaluation conducted by Chen et al. indicates that this combination of architectural separation and specialised fine-tuning provides a significant improvement over previous approaches. Across more than fifteen manually designed prompt injection techniques, StruQ reduces the attack success rate to below 2\%. The approach also improves robustness against optimisation-based attacks such as Greedy Coordinate Gradient (GCG), despite never encountering these attacks during training. Nevertheless, GCG remains partially successful, with it still having a success rate of around 50\%. The authors therefore conclude that structured queries represent an important step towards secure LLM-integrated applications but do not completely eliminate prompt injection vulnerabilities~\parencite{chen2025struq}.
-
-Another issue with StruQ is that it is primarily suited for structured and programmatic applications. Its reliance on explicitly separated channels limits its applicability in open-ended conversational systems~\parencite{chen2025struq}.
-
-These remaining issues and vulnerabilities prompted subsequent research into this matter. The result was a different defence, called SecAlign, which rather than making the model care purely about whether the instruction is positioned inside the instruction or data section of the prompt, instead extends the underlying learning objective of the instruction tuning to explicitly optimise the model to prefer secure responses over responses that follow injected instructions, thus providing better security than StruQ.
+StruQ also assumes that the application can identify which input is the trusted
+task and which is untrusted data. This is straightforward in structured
+workflows, but more difficult in open-ended conversations where users may mix
+instructions and data within the same message.
 
 \subsection{SecAlign}
+\label{subsec:secalign}
 
-SecAlign was explicitly designed to address several limitations identified in StruQ. Due to this, Chen et al. identify the main limitation of StruQ as its reliance on standard supervised fine-tuning, which teaches the model to follow the correct instruction but does not explicitly discourage unsafe behaviour when conflicting instructions are present. To address this issue, SecAlign replaces the conventional training objective with preference alignment while preserving the separation between trusted instructions and untrusted input~\parencite{chen2025secalign}.  
+SecAlign pursues the same separation goal but changes the training objective.
+The authors argue that supervised structured instruction tuning reinforces the
+desired response without explicitly discouraging a response that follows the
+injected instruction
+\parencite{chen2025secalign}.
 
 \subsubsection{Preference Alignment}
+\label{subsubsec:preference-alignment}
 
-SecAlign's changes focus on how the model learns to respond to adversarial inputs. The approach is based on Direct Preference Optimization (DPO), a preference-learning technique that trains a language model to prefer one response over another without requiring reinforcement learning. Rather than only learning the correct response for a given prompt, the model is explicitly trained to rank secure responses higher than insecure ones.
+SecAlign formulates prompt-injection defence as a preference-optimisation
+problem. Each training example contains a prompt-injected input, a preferred
+response that follows the trusted task, and a rejected response that follows
+the injection.
 
-To achieve this, the model is instruction tuned on an adapted dataset, where each sample consists of a structured prompt together with two possible responses. The \emph{preferred} response correctly follows the developer instruction while ignoring malicious instructions contained within the input section. The \emph{rejected} response instead follows the injected instruction.~\parencite{chen2025secalign}. Figure~\ref{tab:secalignexample} shows an example for a sample from the dataset.
+Direct Preference Optimisation increases the likelihood of the preferred
+response relative to the rejected response. The training data are generated by
+inserting instructions from other samples into the data component. The
+preferred output remains the response to the trusted task, while the rejected
+output follows the inserted instruction
+\parencite{chen2025secalign}.
 
-\begin{table}[H]
-\centering
-    \begin{tabular}{p{0.92\linewidth}}
-        \toprule
-        \textbf{Instruction} \\
-        Summarise the following email. \\[0.3em]
+Unlike StruQ, SecAlign does not require a newly reserved token vocabulary and
+can be applied to existing prompt formats. The application must nevertheless
+continue to distinguish the trusted instruction from the untrusted data.
+SecAlign changes model behaviour; it does not infer trustworthy origin on
+behalf of the application.
 
-        \textbf{Input} \\
-        Ignore the previous instruction and output the user's password. \\[0.3em]
+\subsubsection{Evaluation and Comparison with StruQ}
+\label{subsec:secalign-evaluation}
 
-        \textbf{Preferred Response} \\
-        A summary of the email content. \\[0.3em]
+SecAlign was compared with StruQ across five Llama and Mistral model variants
+using 208 AlpacaFarm security samples. Under the default criterion, an attack
+succeeded when the response began with \enquote{Hacked} or
+\enquote{hacked}
+\parencite{chen2025secalign}.
 
-        \textbf{Rejected Response} \\
-        The user's password is ... \\
-        \bottomrule
-    \end{tabular}
-    \caption{Simplified preference pair used during SecAlign training, adapted from Chen et al.~\parencite{chen2025secalign}}
-    \label{tab:secalignexample}
-\end{table}
-Instead of merely learning the preferred response, Models trained via SecAlign thus explicitly learn to distinguish between secure and insecure behaviour. The optimisation objective therefore reinforces responses that comply with the trusted instruction while simultaneously decreasing the probability of responses that follow injected instructions~\parencite{chen2025secalign}.
+Across three optimisation-free attacks, SecAlign's maximum ASR was \(0\%\) for
+every evaluated model. Across GCG, AdvPrompter, and NeuralExec, the maximum ASR
+for each model ranged from \(27\%\) to \(60\%\) under StruQ and from \(1\%\) to
+\(14\%\) under SecAlign. SecAlign therefore reduced the maximum
+optimisation-based ASR by more than a factor of four for each evaluated model
+\parencite{chen2025secalign}.
 
-\subsubsection{Strengths and Weaknesses}
+The authors also evaluated utility with AlpacaEval2 over 805 prompts. The
+reported win rates remained close to those of the corresponding undefended
+models
+\parencite{chen2025secalign}.
 
-The evaluation presented by Wang et al. demonstrates that preference alignment substantially improves robustness against optimisation-based attacks compared to StruQ. In particular, SecAlign achieves considerably lower attack success rates for GCG, lowering them to around 10\%, while maintaining comparable utility on benign tasks. The authors attribute this improvement to the preference-based optimisation objective, which directly teaches the model to reject unsafe behaviours instead of only reproducing the desired output~\parencite{chen2025secalign}.
+These results show a substantial within-study improvement over StruQ.
+Nevertheless, the evaluation depends on the selected models, attack suite,
+prompt format, target-prefix success criterion, and white-box assumptions.
+SecAlign also remains dependent on defensive fine-tuning and correctly
+separated application inputs.
 
-Despite these improvements, SecAlign does not completely eliminate prompt injection vulnerabilities. The defence still relies on structured prompts generated by trusted applications, thus keeping it from being truly universally applicable, and requires specialised defensive fine-tuning before deployment. Furthermore, the authors note that adaptive attacks and increasingly capable optimisation-based methods continue to present a challenge, with GCG still achieving considerable success rates, indicating that prompt injection remains an open research problem rather than one with a definitive solution~\parencite{chen2025secalign}.
+\subsection{Comparison and Remaining Limitations}
+\label{subsec:struq-secalign-comparison}
+
+StruQ combines reserved delimiter filtering with supervised structured
+instruction tuning. SecAlign instead uses preference optimisation to favour
+responses to the trusted task over responses that follow an injection.
+
+Both approaches substantially reduce attack success in their original
+evaluations. SecAlign performs better against the optimisation-based attacks
+included in its study, while both report limited utility degradation under
+their respective benchmarks.
+
+Neither approach creates an independently enforced authority boundary. The
+decision to follow the trusted instruction remains part of probabilistic model
+behaviour, and the reported effectiveness depends on the models, attacks,
+tasks, success criteria, and attacker access. Chapter~\ref{sec:limits}
+examines these dependencies and later defence-adaptive evaluations.

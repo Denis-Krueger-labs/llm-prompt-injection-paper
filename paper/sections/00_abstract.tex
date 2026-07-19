@@ -2,25 +2,66 @@
 
 Large Language Models (LLMs) are increasingly integrated into applications that
 process external data and interact with tools, thereby expanding their attack
-surface. One of the most important threats to such systems is prompt injection,
-where malicious instructions embedded in untrusted content manipulate model
-behaviour. Since current LLM architectures process instructions and data within
-the same context window, distinguishing between trusted and untrusted
-information remains a fundamental challenge.
+surface. Prompt injection exploits this integration by placing malicious
+instructions in an input channel that the model is expected to treat as data.
+If the model follows that text as an instruction, the result may be a manipulated
+response, disclosure of protected information, or an unauthorised action.
 
-The central question is how effective the separation of instructions and data
-is as a defence strategy against prompt injection attacks. To address this
-question, the work reviews the underlying threat model, structured query
-approaches such as StruQ and SecAlign, and additional architectural and
-system-level defence mechanisms. Current evaluation methodologies and recent
-adaptive attacks are also analysed to assess the limits of existing approaches.
+This scoped narrative review examines how effectively learned separation of
+trusted instructions from untrusted data mitigates that threat. StruQ and
+SecAlign serve as focused case studies because both have public implementations,
+reported utility evaluations, and subsequent evaluations against broader or
+defence-adaptive attacks. Their results are interpreted alongside the threat
+model and system-level controls rather than as a complete empirical comparison
+of every defence class.
 
-The results indicate that separating instructions and data significantly
-improves robustness against many attacks, but does not eliminate the underlying
-vulnerability. Fine-tuning-based approaches remain susceptible to adaptive
-attacks, while stronger guarantees generally require architectural isolation
-and defence-in-depth principles.
+The review finds that learned separation can substantially reduce attack success
+under the conditions tested in the original studies. Its effectiveness remains
+dependent on the model, task, attack construction, success rule, and attacker
+access. Later white-box evaluations demonstrate bypasses of the studied
+defences, but do not prove that all present or future model-level defences are
+impossible. The evidence instead shows that these approaches do not establish a
+deterministic or independently enforced security boundary.
 
-Consequently, prompt injection remains an open problem. Secure deployment of
-LLM-integrated systems requires not only improved models, but also stronger
-system architectures and more rigorous evaluation methodologies.
+Secure deployment should therefore combine model-level robustness with external
+controls such as least-privilege tool access, policy enforcement, sandboxing,
+monitoring, and explicit approval for high-impact actions. These controls limit
+the consequences of model failure and form the basis of a defence-in-depth
+strategy.
+
+\medskip
+\begin{otherlanguage}{ngerman}
+\section*{Zusammenfassung}
+
+Große Sprachmodelle (Large Language Models, LLMs) werden zunehmend in
+Anwendungen integriert, die externe Daten verarbeiten und mit Werkzeugen
+interagieren. Prompt Injection nutzt diese Einbindung aus, indem bösartige
+Anweisungen in einem Eingabekanal platziert werden, den das Modell als Daten
+behandeln soll. Folgt das Modell diesem Text als Anweisung, können manipulierte
+Ausgaben, die Offenlegung geschützter Informationen oder nicht autorisierte
+Aktionen die Folge sein.
+
+Diese eingegrenzte narrative Literaturübersicht untersucht, wie wirksam die
+erlernte Trennung vertrauenswürdiger Anweisungen von nicht vertrauenswürdigen
+Daten diese Bedrohung mindert. StruQ und SecAlign dienen als gezielte
+Fallstudien, da für beide öffentliche Implementierungen, Untersuchungen der
+Nützlichkeit und spätere Evaluationen mit breiteren oder an die Verteidigung
+angepassten Angriffen vorliegen. Ihre Ergebnisse werden im Zusammenhang mit dem
+Bedrohungsmodell und systemseitigen Kontrollen betrachtet, nicht als vollständiger
+empirischer Vergleich aller Verteidigungsklassen.
+
+Die Analyse zeigt, dass die erlernte Trennung die Angriffserfolgsrate unter den
+jeweils getesteten Bedingungen deutlich senken kann. Ihre Wirksamkeit hängt
+jedoch vom Modell, der Aufgabe, der Angriffskonstruktion, dem Erfolgskriterium
+und dem Zugriff des Angreifers ab. Spätere White-Box-Evaluationen umgehen die
+untersuchten Verteidigungen, beweisen jedoch nicht die Unmöglichkeit aller
+gegenwärtigen oder zukünftigen modellbasierten Ansätze. Die Ergebnisse zeigen
+vielmehr, dass die untersuchten Verfahren keine deterministische oder unabhängig
+durchgesetzte Sicherheitsgrenze bilden.
+
+Eine sichere Bereitstellung sollte modellbasierte Robustheit daher mit externen
+Kontrollen wie minimalen Werkzeugberechtigungen, Richtliniendurchsetzung,
+Sandboxing, Überwachung und ausdrücklicher Freigabe folgenreicher Aktionen
+kombinieren. Diese Kontrollen begrenzen die Folgen eines Modellfehlers und bilden
+die Grundlage einer mehrschichtigen Verteidigung.
+\end{otherlanguage}

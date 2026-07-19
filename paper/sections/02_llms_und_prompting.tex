@@ -1,26 +1,16 @@
 \section{LLMs and Prompting}
 \label{sec:llms}
-Large Language Models (LLMs) are a class of artificial intelligence systems
-trained on large amounts of textual data. Their primary objective is to predict
-the next token in a sequence, enabling them to generate coherent and
-contextually relevant responses. Through this process, modern LLMs are capable
-of performing a wide variety of tasks, including summarisation, translation,
-question answering, and code generation.
 
-Interaction with an LLM occurs through prompts. In practical deployments, the
-model typically receives both developer-defined instructions and user-supplied
-input. The developer-defined instructions, commonly referred to as the
-\textit{system prompt}, specify the desired behaviour of the model, while the
-\textit{user prompt} contains the task or request supplied by the user. These
-inputs are combined into a single context window and processed together by the
-model.
+Large Language Models are pretrained to predict tokens from preceding context.
+After instruction tuning, this enables tasks such as summarisation, translation,
+question answering, and code generation
+\parencites{brown2020language}{chen2025struq}.
 
-This architecture represents the foundation of prompt injection attacks. Since
-instructions and user input are processed within the same token sequence, the
-boundary between trusted instructions and untrusted content is not enforced
-structurally. Consequently, an attacker may attempt to craft inputs that
-override or interfere with the intended behaviour of the system~\parencite{liu2023promptinjection}.
-
-This absence of a structural boundary between trusted instructions and untrusted
-data is the fundamental condition that makes prompt injection attacks possible,
-as the following section examines in detail.
+In an LLM-integrated application, the model context may contain
+application-provided instructions, a user request, retrieved data, and tool
+results. Role markers and delimiters can signal that some components should
+receive higher priority than others, and instruction-hierarchy training can
+strengthen this behaviour
+\parencite{wallace2024instruction}. However, these distinctions remain inputs
+interpreted by the model rather than an independently enforced authority
+mechanism.

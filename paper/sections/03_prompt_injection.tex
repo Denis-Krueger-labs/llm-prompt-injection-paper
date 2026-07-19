@@ -1,87 +1,156 @@
 \section{Prompt Injection Attacks}
-\label{sec:attacks}
+\label{sec:prompt-injection}
 
-Prompt injection attacks exploit the architectural properties described in the
-previous section. The core mechanism is that an attacker introduces malicious
-instructions into the model's context, causing the model to act on them
-instead of the legitimate ones~\parencite{perez2022ignore}. Notably, this does
-not require any bug in the software --- the model is functioning as intended,
-it is simply following instructions from an unintended
-source~\parencite{chen2025struq}. OWASP ranks this as the top security risk
-for LLM-integrated applications~\parencite{owasp2024llm}.
+Prompt injection occurs when attacker-controlled text is interpreted as an
+instruction that redirects the trusted task
+\parencite{perez2022ignore}. The failure becomes security-relevant when the
+surrounding application exposes protected information or allows consequential
+actions.
 
 \subsection{Direct and Indirect Prompt Injection}
+\label{subsec:direct-indirect}
 
-The literature distinguishes two main delivery mechanisms~\parencite{greshake2023indirect}.
+The literature distinguishes two principal delivery mechanisms
+\parencite{greshake2023indirect}.
 
-\textit{Direct prompt injection} is the more obvious variant: the attacker
-interacts with the model directly and attempts to override its instructions
-through crafted inputs. Common examples include prompts such as ``ignore
-previous instructions'' or attempts to convince the model it is operating in a
-different context~\parencite{perez2022ignore}.
+In a \emph{direct prompt injection}, a malicious user submits the payload
+through the application's ordinary input channel. The attacker may ask the
+model to ignore the established task, imitate a higher-priority instruction,
+or begin a new task
+\parencite{perez2022ignore}. Figure~\ref{fig:direct-prompt-injection} shows the
+trusted instruction and the competing attacker-controlled input.
 
-\textit{Indirect prompt injection} is generally considered the more dangerous
-variant in real deployments. Here, the attacker does not interact with the
-model at all --- instead, malicious instructions are placed in content the
-model will eventually process as part of its normal operation: a webpage, a
-document, an email, or an API response. Since LLM agents and RAG systems
-continuously consume such data, users may be entirely unaware that an attack
-is occurring~\parencite{greshake2023indirect}. As \textcite{debenedetti2024agentdojo}
-demonstrate, untrusted tool outputs are a particularly effective vector in
-agentic systems.
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={draw, rounded corners, align=center, text width=2.5cm,
+                    minimum height=0.9cm},
+        untrusted/.style={box, dashed},
+        flow/.style={-{Latex[length=2.2mm]}, thick}
+    ]
+        \node[box] (trusted) at (1.4,1.3)
+            {Trusted application\\instruction};
+        \node[untrusted] (attacker) at (1.4,-1.3)
+            {Malicious user's\\direct input};
+        \node[box] (application) at (5.0,0)
+            {Application\\prompt construction};
+        \node[box] (llm) at (8.7,0)
+            {Large Language\\Model};
+        \node[box] (output) at (12.4,0)
+            {Model\\output};
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\linewidth]{images/direct_prompt_injection(1).pdf}
-\caption{Direct prompt injection.}
-\label{fig:direct-prompt-injection}
+        \draw[flow] (trusted) -- (application);
+        \draw[flow] (attacker) -- (application);
+        \draw[flow] (application) -- (llm);
+        \draw[flow] (llm) -- (output);
+    \end{tikzpicture}
+    \caption[Direct prompt injection]{Direct prompt injection through the
+    application's user-input channel. The malicious input is combined with the
+    trusted application instruction during prompt construction. Original
+    schematic based on \textcite{perez2022ignore}.}
+    \label{fig:direct-prompt-injection}
 \end{figure}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\linewidth]{images/indirect_prompt_injection(1).pdf}
-\caption{Indirect prompt injection.}
-\label{fig:indirect-prompt-injection}
+In an \emph{indirect prompt injection}, the payload is placed in external
+content that the application later retrieves or processes, such as a webpage,
+document, email, API response, or tool output. The attacker therefore does not
+need to interact directly with the target application
+\parencite{greshake2023indirect}. Because the payload is embedded in ordinary
+content, the user may be unaware that it is present.
+
+Retrieval-augmented generation (RAG) systems retrieve external information and
+add it to the model context. Tool-using agents additionally allow model outputs
+to select or invoke external operations. Both create channels through which
+attacker-controlled content can reach the model
+\parencites{greshake2023indirect}{debenedetti2024agentdojo}. As
+Figure~\ref{fig:indirect-prompt-injection} illustrates, trusted and untrusted
+inputs then converge during context assembly.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        box/.style={draw, rounded corners, align=center, text width=2.3cm,
+                    minimum height=0.9cm},
+        untrusted/.style={box, dashed},
+        flow/.style={-{Latex[length=2.2mm]}, thick}
+    ]
+        \node[box] (trusted) at (1.3,1.4)
+            {Trusted task\\instruction};
+        \node[untrusted] (content) at (1.3,-1.4)
+            {External content\\with injected\\instruction};
+        \node[box] (retrieval) at (4.4,-1.4)
+            {Retrieval system,\\API, or tool};
+        \node[box] (application) at (7.5,0)
+            {Application\\context assembly};
+        \node[box] (llm) at (10.5,0)
+            {Large Language\\Model};
+        \node[box] (effect) at (13.5,0)
+            {Output or\\tool request};
+
+        \draw[flow] (trusted) -- (application);
+        \draw[flow] (content) -- (retrieval);
+        \draw[flow] (retrieval) -- (application);
+        \draw[flow] (application) -- (llm);
+        \draw[flow] (llm) -- (effect);
+    \end{tikzpicture}
+    \caption[Indirect prompt injection]{Indirect prompt injection through
+    attacker-controlled external content retrieved at run time. The content is
+    incorporated into the application context together with the trusted task
+    instruction. Original schematic based on
+    \textcite{greshake2023indirect}.}
+    \label{fig:indirect-prompt-injection}
 \end{figure}
 
 \subsection{Why Prompt Injection Works and Its Consequences}
+\label{subsec:prompt-injection-consequences}
 
-The reason prompt injection works comes down to how LLMs process input. They
-operate on token sequences and have no internal representation of where a token
-came from. A system instruction and an attacker-injected string are
-indistinguishable at the model level~\parencite{liu2023promptinjection}.
-This problem is compounded by the fact that modern LLMs are explicitly trained
-to follow instructions well --- the same property that makes them useful also
-makes them susceptible to manipulation.
+Role markers and prompt formats provide useful signals, but they do not form an
+independently enforced authority boundary. A model may therefore follow
+instructional language in an untrusted channel even when the application
+intended it to be data
+\parencites{liu2023promptinjection}{wallace2024instruction}. Instruction
+following is both the capability that enables useful task execution and the
+behaviour that an injected payload attempts to redirect.
 
-What an attacker can achieve depends on the capabilities of the surrounding
-system. \textcite{fspib2025} distinguish between \textit{information-level}
-and \textit{action-level} impacts. At the information level, attackers can
-manipulate outputs, extract sensitive data, or elicit system prompt disclosure.
-In agentic systems, a successful injection can additionally trigger tool calls
-or take actions on the user's behalf~\parencite{fspib2025}. The attack surface
-extends beyond the model itself: injections can propagate into connected
-services, functioning as a bridge between natural language manipulation and
-more traditional attack vectors~\parencite{pedro2025p2sql}. Real-world
-incidents such as the Slack AI attack confirm that these risks are not
-theoretical~\parencite{chen2025secalign}.
+The Prompt Injection Benchmark for Foundation Model Integrated Systems
+distinguishes \emph{information-level} effects, such as information leakage,
+goal hijacking, and response refusal, from \emph{action-level} effects, such as
+unauthorised operations or manipulated tool parameters
+\parencite{fspib2025}.
 
-\subsection{Attack Taxonomy}
+A researcher-reported Slack AI demonstration illustrates an
+interaction-dependent attack chain. A malicious instruction in public-channel
+content caused private-channel information to be encoded in a generated link.
+Exfiltration still required the victim to click the attacker-controlled link
+\parencite{promptarmor2024slack}. The example shows how prompt injection can
+connect model manipulation with retrieval, output rendering, and external
+destinations.
 
-Attacks also differ in how the injected content is constructed.
+\subsection{Attack Construction}
+\label{subsec:attack-construction}
 
-\textit{Heuristic attacks} are handcrafted prompts designed to override the
-model's instructions, such as context ignoring or fake completion
-techniques~\parencite{jia2025critical}. They are straightforward to construct
-and remain effective against many systems.
+Delivery mechanism, construction method, attacker access, and attack objective
+are separate dimensions. A manually written or optimisation-generated payload
+may be delivered either directly or indirectly, while the same delivery channel
+may carry attacks with different objectives.
 
-\textit{Optimisation-based attacks} use gradient-guided search to find token
-sequences that maximise the probability of the model complying with the
-injected instruction. The Greedy Coordinate Gradient (GCG) method by
-\textcite{zou2023universal} is the most widely studied example. These are
-considerably harder to defend against and play a central role in evaluating
-the robustness of the defences discussed later in this paper.
+Handcrafted attacks include context-ignoring and fake-completion prompts
+\parencite{jia2025critical}. A context-ignoring attack asks the model to discard
+the established task. A completion attack imitates the end of the legitimate
+exchange before introducing a new instruction.
 
-Before examining those defences, it is necessary to define a threat model that
-specifies what attackers are assumed to be capable of and what a secure system
-should guarantee.
+Optimisation-based attacks instead search for token sequences that increase the
+probability of an attacker-selected output. Greedy Coordinate Gradient (GCG)
+is a prominent example. A model gradient estimates how changes to the input
+would affect the attack objective. GCG uses gradients with respect to token
+representations to rank candidate substitutions and iteratively construct an
+adversarial suffix
+\parencite{zou2023universal}.
+
+GCG was introduced for jailbreaking safety-aligned models, but StruQ and
+SecAlign adapt its objective to prompt injection
+\parencites{chen2025struq}{chen2025secalign}. The distinction lies in the
+security objective: a jailbreak attempts to override a provider's safety
+policy, whereas prompt injection redirects an application- or user-defined
+trusted task through attacker-controlled content. The same construction method
+can support either objective without making the threat models identical.

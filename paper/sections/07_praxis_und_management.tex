@@ -1,0 +1,85 @@
+\section{Practical Implications and Deployment Considerations}
+\label{sec:praxis}
+
+\subsection{Deployment Controls}
+\label{subsec:deployment-controls}
+
+External content should retain information about its origin and trust status throughout
+retrieval, summarisation, memory, and tool use. Prompt delimiters or labels alone
+remain model-mediated. They become externally enforceable only when the
+application preserves them and an independent policy component uses them when
+authorising information flows or actions
+\parencites{hines2024spotlighting}{wu2024systemlevel}.
+
+Tools and credentials should follow the principle of least privilege. Read
+permissions should be separated from write, send, or delete permissions, and
+credentials should be short-lived and limited to the current task. An
+authorisation component outside the model should validate the requested
+operation, recipient, destination, and security-relevant parameters before
+execution
+\parencites{debenedetti2024agentdojo}
+             {debenedetti2025defeating}
+             {owasp2025llm}.
+
+Sandboxing can further restrict file, network, code-execution, and secret access
+when model output is malicious. It does not prevent prompt injection, but it can
+contain the resulting action~\parencites{debenedetti2024agentdojo}{debenedetti2025defeating}{owasp2025llm}. High-impact operations, such as sending messages,
+modifying records, or disclosing protected data, should additionally require an
+independent policy decision or explicit human approval.  
+
+These controls depend on correct source labels, sufficiently complete
+policies, and tool interfaces that cannot bypass the authorisation component.
+They reduce the consequences of model failure but do not guarantee that every
+permitted action is desirable.
+
+\subsection{Testing, Monitoring, and Incident Response}
+\label{subsec:testing-monitoring-response}
+
+Pre-deployment and regression testing should reflect the application's actual
+trust boundaries and permissions. Tests should include direct and indirect
+payloads, tool interactions, varied attacker objectives, and attacks adapted to
+the deployed defence. White-box audits are useful for examining the limits of
+open-weight models, but should be distinguished from realistic query-only
+attack paths
+\parencites{debenedetti2024agentdojo}
+             {jia2025critical}
+             {yang2025checkpointgcg}
+             {pandya2025astra}.
+
+Protected logs should record relevant input origin, retrieved content,
+model outputs, proposed tool calls, policy decisions, approvals, credential
+scopes, and external destinations. Because prompts and outputs may contain
+sensitive information, these records require access control, data minimisation,
+retention limits, and integrity protection
+\parencite{owasp2025llm}.
+
+An incident plan should support containment of the affected workflow,
+revocation of active or exposed credentials, quarantine of malicious content,
+and investigation of affected data and actions. The incident should also be
+added to future regression tests. Content stored in retrieval systems or memory
+may need to be removed before the workflow resumes.
+
+Monitoring and incident response do not prevent the initial model failure and
+cannot reverse information that has already been disclosed. Their purpose is to
+detect malicious behaviour, contain affected workflows, support investigation,
+and reduce continued exposure
+\parencites{owasp2025llm}{debenedetti2024agentdojo}.
+
+\subsection{Trade-Offs and Outlook}
+\label{subsec:deployment-tradeoffs}
+
+System-level controls introduce operational costs. Policy gates and sandboxes
+require integration and maintenance, approval steps add latency and reduce
+automation, and monitoring creates storage, privacy, and access-control
+obligations. StruQ and SecAlign also require model adaptation and application
+support while remaining probabilistic.
+
+Deployment decisions must therefore balance task utility, engineering cost,
+policy coverage, and the consequences of both model and enforcement failure.
+Where external controls cannot reduce the residual risk to an acceptable level,
+high-impact actions should remain subject to independent approval or should not
+be automated. Defence in depth combines model-level mitigation with external
+prevention, containment, detection, and recovery
+\parencites{owasp2025llm}
+             {wu2024systemlevel}
+             {debenedetti2025defeating}.

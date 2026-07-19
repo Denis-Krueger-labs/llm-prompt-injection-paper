@@ -1,0 +1,109 @@
+\section{Limits of the Case-Study Defences}
+\label{sec:limits}
+
+The original StruQ and SecAlign evaluations show that learned
+instruction--data separation can reduce prompt-injection success. Their results
+remain conditional on the selected models, tasks, attacks, attacker access,
+optimisation budgets, and success criteria. This section examines how the
+evidence changes under broader and defence-adaptive evaluations.
+
+\subsection{Evaluation Methodology Problems}
+\label{subsec:evaluation-methodology}
+
+Attack Success Rate (ASR) is meaningful only when the counted success event is
+defined. StruQ manually checks responses containing \enquote{Hacked!}, whereas
+SecAlign counts an attack as successful when the response begins with
+\enquote{Hacked} or \enquote{hacked}
+\parencites{chen2025struq}{chen2025secalign}. Such target-output criteria provide
+repeatable proxies for instruction-following compromise, but they do not
+directly measure confidential-data disclosure, unauthorised tool execution, or
+open-ended attacker objectives
+\parencite{jia2025critical}.
+
+Results from different studies are therefore not directly rankable. Changes in
+models, datasets, prompts, attacker knowledge, optimisation methods, and success
+rules can substantially alter the reported outcome. Jia et al., for example,
+evaluate OpenPromptInjection and MMLU-PI, a prompt-injection benchmark derived
+from the Massive Multitask Language Understanding benchmark. They use a
+task-specific Attack Success Value (ASV) rather than only target-string
+compliance. Under adaptive GCG, StruQ reached an ASV of \(1.00\) on both
+benchmarks, while SecAlign reached \(0.46\) on OpenPromptInjection and \(0.88\)
+on MMLU-PI
+\parencite{jia2025critical}.
+
+The same caution applies to utility. SecAlign reports AlpacaEval2 results
+relative to a \texttt{davinci003} reference, whereas Jia et al. compare the
+released defended variants with the corresponding undefended Llama model and
+additional ground-truth tasks
+\parencites{chen2025secalign}{jia2025critical}. Their lower utility scores
+therefore demonstrate a trade-off in that evaluation setting rather than a
+direct contradiction of the original results.
+
+\subsection{Adaptive Attacks}
+\label{subsec:adaptive-attacks}
+
+Adaptive attacks target assumptions or training procedures specific to the
+defence. They are useful for testing worst-case robustness, although their
+access requirements may be less representative of attacks against closed
+services.
+
+Checkpoint-GCG attacks successive intermediate fine-tuning checkpoints. A
+suffix found against one checkpoint is used to initialise the attack against
+the next. With access to the full model input and checkpoints, the method
+achieved ASRs of \(88\%\), \(96\%\), and \(84\%\) against SecAlign-defended
+Llama, Mistral, and Qwen models. Universal suffixes reached \(75.3\%\),
+\(89.9\%\), and \(78.3\%\) on held-out prompts, while one Llama-derived suffix
+transferred to a related model with \(63.9\%\) ASR
+\parencite{yang2025checkpointgcg}. These results show that resistance to
+ordinary GCG does not imply resistance to checkpoint-aware optimisation, but
+the attack assumes unusually strong audit access.
+
+ASTRA uses attention-guided white-box optimisation followed by a GCG-style
+target objective. At a 35-token budget, it achieved \(72.5\%\) ASR against
+SecAlign-defended Llama and \(82.5\%\) against Mistral. ASTRA++, which withholds
+the preceding context while retaining model and defence access, reached
+\(96\%\) against SecAlign and \(87\%\) against SecAlign++
+\parencite{pandya2025astra}. These results demonstrate bypasses under the tested
+white-box conditions, but do not establish the same success against closed APIs
+or deployments with additional application-level controls.
+
+Together, these evaluations show that StruQ and SecAlign do not create a
+deterministic or independently enforced trust boundary. They do not establish
+that every model-level defence must fail under every deployment condition.
+
+\subsection{Security and Utility Trade-Offs}
+\label{subsec:security-utility}
+
+A useful defence must reduce malicious instruction following without preventing
+legitimate analysis of instructional text. A system that rejects every
+imperative sentence may achieve a low ASR while becoming unusable, whereas a
+model that preserves broad instruction-following behaviour may retain a larger
+attack surface. Security and utility should therefore be reported together
+under clearly specified models, tasks, references, and judging methods
+\parencites{chen2025struq}{chen2025secalign}{jia2025critical}.
+
+\subsection{Limitations of This Review}
+\label{subsec:review-limitations}
+
+This paper is a selective narrative review and contains no original experiments
+or independent replications. It focuses on StruQ, SecAlign, and later attacks
+against those defences. Comparisons remain limited by differences in models,
+prompts, tasks, attacker access, optimisation budgets, and success definitions.
+Some adaptive evidence is available only as preprint research, while closed
+providers may not disclose enough information for reproducible evaluation. The
+additional exclusions defined in Section~\ref{subsec:threat-scope} also apply
+to this review.
+
+\subsection{Implications of the Evidence}
+\label{subsec:open-problem}
+
+Learned instruction--data separation substantially reduces the handcrafted
+attacks represented in the original evaluations, and SecAlign improves
+resistance to the optimisation-based attacks tested in its study. Later
+defence-adaptive evaluations nevertheless demonstrate that this robustness is
+not an independently enforced guarantee.
+
+Instruction--data separation should therefore be treated as risk reduction
+rather than complete prevention. Deployment must assume that model-level
+protection can fail and constrain resulting information flows and actions
+through controls outside the model.

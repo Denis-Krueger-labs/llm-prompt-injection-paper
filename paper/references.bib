@@ -16,9 +16,13 @@
   title     = {{SecAlign}: Defending Against Prompt Injection with Preference
                Optimization},
   booktitle = {Proceedings of the 2025 ACM SIGSAC Conference on Computer and
-               Communications Security (CCS '25)},
+               Communications Security},
+  series    = {CCS '25},
+  publisher = {Association for Computing Machinery},
   year      = {2025},
-  doi       = {10.1145/3719027.3744836}
+  pages     = {2833--2847},
+  doi       = {10.1145/3719027.3744836},
+  url       = {https://doi.org/10.1145/3719027.3744836}
 }
 
 @inproceedings{debenedetti2024agentdojo,
@@ -38,9 +42,10 @@
   title         = {A Critical Evaluation of Defenses against Prompt Injection
                    Attacks},
   year          = {2025},
-  eprint        = {2505.18333},
+  eprint        = {2505.18333v1},
   archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
+  primaryClass  = {cs.CR},
+  note          = {Version 1, 23 May 2025}
 }
 
 @misc{yang2025checkpointgcg,
@@ -49,9 +54,10 @@
   title         = {{Checkpoint-GCG}: Auditing and Attacking Fine-Tuning-Based
                    Prompt Injection Defenses},
   year          = {2025},
-  eprint        = {2505.15738},
+  eprint        = {2505.15738v2},
   archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
+  primaryClass  = {cs.CR},
+  note          = {Version 2, revised 16 October 2025}
 }
 
 @misc{pandya2025astra,
@@ -60,14 +66,25 @@
   title         = {May I Have Your Attention? Breaking Fine-Tuning Based Prompt
                    Injection Defenses Using Architecture-Aware Attacks},
   year          = {2025},
-  eprint        = {2507.07417},
+  eprint        = {2507.07417v2},
   archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
+  primaryClass  = {cs.CR},
+  note          = {Version 2, revised 17 December 2025}
 }
 
 % ══════════════════════════════════════════════════════════════════════════════
 % Foundational
 % ══════════════════════════════════════════════════════════════════════════════
+
+@inproceedings{brown2020language,
+  author        = {Brown, Tom B. and others},
+  title         = {Language Models are Few-Shot Learners},
+  booktitle     = {Advances in Neural Information Processing Systems},
+  volume        = {33},
+  pages         = {1877--1901},
+  year          = {2020},
+  url           = {https://proceedings.neurips.cc/paper/2020/hash/1457c0d6bfcb4967418bfb8ac142f64a-Abstract.html}
+}
 
 @misc{perez2022ignore,
   author        = {F\'{a}bio Perez and Ian Ribeiro},
@@ -123,11 +140,20 @@
   primaryClass  = {cs.CR}
 }
 
-@misc{owasp2024llm,
+@online{owasp2025llm,
   author = {{OWASP Foundation}},
-  title  = {{OWASP Top 10 for Large Language Model Applications}},
-  year   = {2024},
-  url    = {https://genai.owasp.org/llm-top-10/}
+  title  = {{OWASP Top 10 for LLM Applications 2025}},
+  year   = {2025},
+  url    = {https://genai.owasp.org/llm-top-10/},
+  urldate = {2026-07-19}
+}
+
+@online{promptarmor2024slack,
+  author = {{PromptArmor}},
+  title  = {Data Exfiltration from {Slack AI} via Indirect Prompt Injection},
+  date   = {2024-08-20},
+  url    = {https://promptarmor.substack.com/p/data-exfiltration-from-slack-ai-via},
+  urldate = {2026-07-19}
 }
 
 % ══════════════════════════════════════════════════════════════════════════════
@@ -143,18 +169,6 @@
   title         = {{PromptArmor}: Simple yet Effective Prompt Injection Defenses},
   year          = {2025},
   eprint        = {2507.15219},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
-}
-
-@misc{zhong2025rtbas,
-  author        = {Peter Yong Zhong and Siyuan Chen and Ruiqi Wang and
-                   McKenna McCall and Ben L. Titzer and Heather Miller and
-                   Phillip B. Gibbons},
-  title         = {{RTBAS}: Defending {LLM} Agents Against Prompt Injection
-                   and Privacy Leakage},
-  year          = {2025},
-  eprint        = {2502.08966},
   archivePrefix = {arXiv},
   primaryClass  = {cs.CR}
 }
@@ -192,28 +206,15 @@
   primaryClass  = {cs.CR}
 }
 
-@misc{wei2025amemguard,
-  author        = {Qianshan Wei and Tengchao Yang and Yaochen Wang and
-                   Xinfeng Li and Lijun Li and Zhenfei Yin and Yi Zhan and
-                   Thorsten Holz and Zhiqiang Lin and XiaoFeng Wang},
-  title         = {{A-MemGuard}: A Proactive Defense Framework for {LLM}-Based
-                   Agent Memory},
-  year          = {2025},
-  eprint        = {2510.02373},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
-}
-
-% FSPIB fixed
-@misc{fspib2025,
-  author        = {Jiongxiao Wang and Peiran Li and Siyuan Ma and Peiran Wang and
-                   Xiaogeng Liu and Jiashuo Sun and Yiming Liang and Tian Xia and
-                   Yu Wang and Weidi Luo and Chaowei Xiao},
-  title         = {Prompt Injection Benchmark for Foundation Model Integrated Systems},
-  year          = {2025},
-  eprint        = {2501.06608},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CR}
+@online{fspib2025,
+  author  = {Jiongxiao Wang and Peiran Li and Siyuan Ma and Peiran Wang and
+             Xiaogeng Liu and Jiashuo Sun and Yiming Liang and Tian Xia and
+             Yu Wang and Weidi Luo and Chaowei Xiao},
+  title   = {Prompt Injection Benchmark for Foundation Model Integrated Systems},
+  year    = {2024},
+  note    = {Submitted to ICLR 2025; revised 5 February 2025},
+  url     = {https://openreview.net/forum?id=MsRdq0ePTR},
+  urldate = {2026-07-19}
 }
 
 % P2SQL fixed
