@@ -4,7 +4,7 @@
 \subsection{Deployment Controls}
 \label{subsec:deployment-controls}
 
-External content should retain its provenance and trust status throughout
+External content should retain information about its origin and trust status throughout
 retrieval, summarisation, memory, and tool use. Prompt delimiters or labels alone
 remain model-mediated. They become externally enforceable only when the
 application preserves them and an independent policy component uses them when
@@ -23,13 +23,11 @@ execution
 
 Sandboxing can further restrict file, network, code-execution, and secret access
 when model output is malicious. It does not prevent prompt injection, but it can
-contain the resulting action. High-impact operations, such as sending messages,
+contain the resulting action~\parencites{debenedetti2024agentdojo}{debenedetti2025defeating}{owasp2025llm}. High-impact operations, such as sending messages,
 modifying records, or disclosing protected data, should additionally require an
-independent policy decision or explicit human approval. The approval interface
-should display the exact proposed action, destination, recipient, and affected
-data rather than relying solely on the model's explanation.
+independent policy decision or explicit human approval.  
 
-These controls depend on correct provenance labels, sufficiently complete
+These controls depend on correct source labels, sufficiently complete
 policies, and tool interfaces that cannot bypass the authorisation component.
 They reduce the consequences of model failure but do not guarantee that every
 permitted action is desirable.
@@ -48,7 +46,7 @@ attack paths
              {yang2025checkpointgcg}
              {pandya2025astra}.
 
-Protected logs should record relevant input provenance, retrieved content,
+Protected logs should record relevant input origin, retrieved content,
 model outputs, proposed tool calls, policy decisions, approvals, credential
 scopes, and external destinations. Because prompts and outputs may contain
 sensitive information, these records require access control, data minimisation,
