@@ -3,7 +3,7 @@
 % Encoding & language
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[english]{babel}  %  English primary
+\usepackage[main=english,ngerman]{babel}
 
 % Typography
 \usepackage{microtype}
@@ -14,31 +14,26 @@
 \usepackage[a4paper, margin=2.5cm]{geometry}
 \usepackage{parskip}  % space between paragraphs instead of indent
 
-% Math & symbols
-\usepackage{amsmath}
-
 % Graphics & figures
-\usepackage{graphicx}
-\usepackage{float}
-\graphicspath{{figures/}}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
 
 % Tables
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{pdflscape}
+\usepackage{array}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
-% Code listings
-\usepackage{listings}
-\usepackage{xcolor}
-
-\lstset{
-    basicstyle=\ttfamily\small,
-    breaklines=true,
-    frame=single,
-    backgroundcolor=\color{gray!10},
-    keywordstyle=\color{blue},
-    commentstyle=\color{gray},
-    stringstyle=\color{teal},
-}
+% Quotations and bibliography
+\usepackage{csquotes}
+\usepackage[
+  backend=biber,
+  style=authoryear,
+  sorting=nyt
+]{biblatex}
+\addbibresource{references.bib}
 
 % Hyperlinks & PDF metadata
 \usepackage[
@@ -50,14 +45,6 @@
     pdfauthor={Denis Krüger, Sebastian Mautner}
 ]{hyperref}
 
-% Bibliography
-\usepackage[
-  backend=biber,
-  style=authoryear,
-  sorting=nyt
-]{biblatex}
-\addbibresource{references.bib}
-
 % Header/footer
 \usepackage{fancyhdr}
 \pagestyle{fancy}
@@ -65,30 +52,27 @@
 \rhead{\small LLM Prompt Injection Defences}
 \lhead{\small Krüger, Mautner}
 \cfoot{\thepage}
+\setlength{\headheight}{14.5pt}
 
 % ── Document ─────────────────────────────────────────────────────────────────
 
 \begin{document}
 
 \input{sections/00_titlepage}
-
-
-
-\newpage
 \input{sections/00_abstract}
-\newpage
+\clearpage
+\tableofcontents
+\clearpage
 \input{sections/01_einleitung}
 \input{sections/02_llms_und_prompting}
 \input{sections/03_prompt_injection}
 \input{sections/04_bedrohungsmodell}
 \input{sections/05_struq}
-\input{sections/06_weitere_defences}
-\input{sections/07_benchmarks_und_metriken}
-\input{sections/08_grenzen_aktueller_defences}
+\input{sections/06_limits_of_current_defences}
 \input{sections/09_praxis_und_management}
 \input{sections/10_fazit}
 
-\newpage
+\clearpage
 \printbibliography[heading=bibintoc]
 
 \end{document}

@@ -1,47 +1,81 @@
 \section{Introduction}
 \label{sec:einleitung}
 
-LLMs have become a core component of modern software infrastructure. They are
-embedded in applications that read emails, summarise documents, browse the web,
-and execute actions on behalf of users --- often with minimal human oversight.
-This broad integration makes them highly capable, but also exposes them to a
-class of attacks that did not exist before they were deployed at this scale.
+Large Language Models (LLMs) have become a component of software that reads
+emails, summarises documents, retrieves web content, and executes actions on
+behalf of users. This integration makes them useful, but also exposes them to
+inputs controlled by parties other than the application operator.
 
-The threat this paper focuses on is \textit{prompt injection}. The basic
-mechanism is that an attacker embeds malicious instructions inside content the
-model is supposed to process, and the model follows them instead of the
-legitimate ones~\parencite{perez2022ignore, greshake2023indirect}. Because
-LLMs have no reliable way to distinguish developer instructions from
-attacker-supplied text, injected content can redirect model behaviour, extract
-sensitive information, or trigger unintended actions.
+The threat considered in this paper is \emph{prompt injection}. An attacker
+places a malicious instruction in content processed by the model, and the model
+may follow it instead of the trusted task
+\parencites{perez2022ignore}{greshake2023indirect}. The resulting behaviour can
+redirect an answer, disclose protected information, or influence a connected
+tool. The 2025 Open Worldwide Application Security Project (OWASP) Top 10 for
+LLM Applications lists prompt injection as LLM01, reflecting its importance as
+a system-security risk~\parencite{owasp2025llm}.
 
-The underlying problem is architectural. A human reader can tell the difference
-between a quoted string and an actual command, but an LLM just sees tokens. Any
-application that feeds untrusted external data into a model is structurally
-exposed to this kind of attack~\parencite{liu2023promptinjection}. OWASP
-currently lists it as the most significant security risk for LLM-integrated
-applications~\parencite{owasp2024llm}.
+Applications can encode developer, user, and tool messages with distinct roles
+or delimiters. These distinctions affect model behaviour, but they are still
+interpreted by the model and should not be treated as access control. Unlike a
+prepared Structured Query Language (SQL) statement, a prompt format does not by
+itself give natural-language text a type that prevents it from influencing
+generation. The relevant weakness
+is therefore not that all input is literally identical, but that no reliably
+enforced provenance or authority boundary can be assumed from model behaviour
+alone
+\parencites{liu2023promptinjection}{wallace2024instruction}.
 
-What distinguishes prompt injection from something like SQL injection is that
-there is no syntactic boundary to enforce. The separation between instructions
-and data is semantic, which means it cannot be addressed through simple input
-sanitisation. The model must interpret both simultaneously, within the same
-context window, with no formal distinction between them.
-
-Researchers have proposed a range of defences --- from input filtering to
-architectural redesigns --- but recent evaluations consistently find that these
-hold up less well than initially reported, particularly against attackers who
-adapt to the specific defence being
-used~\parencite{yang2025checkpointgcg, pandya2025astra, jia2025critical}. That
-gap between claimed and actual robustness is a central concern of this paper.
+Research addresses this problem at several layers. Model-level approaches train
+the LLM to prioritise trusted instructions; application-level approaches detect,
+label, or validate data and outputs; system-level controls restrict tools,
+credentials, and information flows. This paper retains that broader
+system-security perspective, but its detailed empirical analysis is deliberately
+narrower. StruQ and SecAlign are used as case studies of learned
+instruction--data separation, while other defence classes are organised and
+discussed without claiming equally detailed experimental coverage.
 
 \medskip
 \noindent\textbf{Research Question} \quad
-\textit{How effective is the separation of instructions and data as a defence
-strategy against prompt injection, and where do the limits of current LLM
-prompt injection defences lie?}
+\textit{How effectively do learned instruction--data separation approaches
+mitigate prompt injection under the evaluated attacker models, and what
+system-level controls are required when they do not provide an independently
+enforced security boundary?}
 
 \medskip
-To answer this question, the paper first covers how LLMs and prompting work,
-since the attack only makes sense in the context of how models process
-instructions and external content.
+This work is a scoped narrative review rather than a systematic review. It
+considers the sources in the project bibliography available up to 19 July 2026.
+StruQ and SecAlign were selected because they implement closely related learned
+separation strategies, publish security and utility results, and are examined by
+subsequent broader and defence-adaptive evaluations. Those later studies were
+selected where they test the case-study defences under changed prompts,
+attacker knowledge, optimisation methods, or transfer settings. Primary sources
+are preferred; recent preprints are included because the technical evidence is
+developing rapidly. No original experiments or independent replications were
+conducted for this paper.
+
+Defence effectiveness is assessed across attack success rate, attacker
+adaptivity, attacker access and knowledge, model and task coverage, utility
+impact, transferability, deployment assumptions, and the location and nature of
+enforcement. Percentages from different papers are not treated as directly
+comparable when their models, attacks, optimisation budgets, success rules, or
+datasets differ. In particular, behavioural robustness is probabilistic, whereas
+an external policy mechanism may be deterministic only under its stated system
+assumptions.
+
+The thesis of this paper is that learned separation of trusted instructions from
+untrusted data can substantially reduce prompt-injection success under evaluated
+conditions, but it is a mitigation rather than independently enforced
+prevention. The absence of a demonstrated deterministic guarantee is not an
+impossibility proof for all model-level defences. Secure deployment must
+therefore combine model-level protection with system-level containment and
+defence in depth.
+
+The remainder of this paper is organised as follows.
+Section~\ref{sec:llms} introduces LLMs and prompting, followed by direct and
+indirect prompt injection in Section~\ref{sec:attacks}.
+Section~\ref{sec:threat} defines the system, attacker, and security assumptions.
+Section~\ref{sec:struq} positions the defence landscape and examines StruQ and
+SecAlign. Section~\ref{sec:limits} compares their evidence, adaptive attacks,
+and security--utility trade-offs. Section~\ref{sec:praxis} derives practical
+deployment implications before Section~\ref{sec:fazit} concludes.

@@ -1,46 +1,33 @@
 \section{Conclusion}
 \label{sec:fazit}
 
-The effectiveness of separating instructions and data depends strongly on how
-strictly that separation is enforced. Prompt injection is not merely an
-implementation flaw, but a structural vulnerability caused by the fact that
-modern LLMs process trusted instructions and untrusted data within the same
-context window.
+The effectiveness of learned instruction--data separation depends on the attack
+and evaluation setting. In their original evaluations, StruQ and SecAlign
+substantially reduce success against the tested handcrafted attacks. Standard
+optimisation-based attacks produce mixed results, with the final SecAlign study
+showing a strong within-study improvement over StruQ. Broader and
+defence-adaptive white-box evaluations nevertheless find successful bypasses of
+both approaches. Whether those audit results transfer to closed, dynamically
+configured production systems remains an empirical question.
 
-Separating instructions and data is therefore an important defence strategy,
-but not a complete solution. Fine-tuning approaches such as StruQ and SecAlign
-significantly increase the effort required for successful attacks and provide
-strong protection against many heuristic prompt injection techniques. However,
-these defences remain probabilistic and can still be bypassed by adaptive
-attacks designed specifically to target their assumptions. Robustness observed
-under standard evaluation conditions therefore does not necessarily translate
-into reliable security in realistic adversarial settings.
+The evidence therefore supports mitigation, not complete prevention. StruQ and
+SecAlign learn to prioritise a trusted channel, but the decision remains part of
+probabilistic model behaviour. The reviewed bypasses show that these defences do
+not establish a demonstrated deterministic or independently enforced security
+boundary under the evaluated conditions. They do not prove that every present
+or future model-level defence is impossible.
 
-A central distinction is the difference between semantic and architectural
-separation. Semantic approaches attempt to teach the model to recognise and
-ignore malicious instructions, whereas architectural approaches enforce trust
-boundaries independently of model behaviour. Architectural separation offers
-stronger guarantees, but usually requires substantial changes to existing
-systems and is harder to integrate into practical deployments.
+Secure deployment must consequently constrain model failures at the system
+level. Provenance should be preserved, tools and credentials should follow least
+privilege, security-relevant parameters should be checked outside the model, and
+high-impact actions should pass an independent policy or approval step.
+Sandboxing, protected monitoring, realistic adversarial testing, and incident
+response provide containment, detection, and recovery rather than substituting
+for access control.
 
-Prompt injection should therefore be understood as a system-level problem rather
-than an isolated weakness of the model itself. As LLMs gain access to tools,
-external data sources, and increasingly autonomous workflows, the consequences
-of successful manipulation extend beyond incorrect outputs and can affect the
-surrounding system as a whole. Increased model capability does not
-automatically solve this issue; in some cases, more capable models may also be
-better at executing malicious instructions once the security boundary is
-bypassed.
-
-Consequently, no single defence currently provides complete protection against
-prompt injection. The most realistic strategy is defence in depth, combining
-model-level robustness with architectural isolation, least-privilege access
-control, monitoring, and human oversight for sensitive operations.
-
-In conclusion, separating instructions and data is a necessary step towards
-safer LLM-integrated systems, but it does not eliminate the underlying
-vulnerability. Prompt injection remains an open problem, and secure deployment
-will depend not only on advances in model capability, but also on stronger
-architectural guarantees, more rigorous evaluation methodologies, and careful
-attention to emerging threats such as multimodal prompt injection and
-increasingly autonomous agents.
+Architectural approaches can provide stronger, externally enforceable
+guarantees only under explicit assumptions about labels, policies, trusted
+interpreters, tool wrappers, and the trusted computing base. The resulting
+defence-in-depth conclusion is therefore deliberately conditional: learned
+separation is useful risk reduction, while system-level controls limit the
+consequences when that behavioural protection fails.

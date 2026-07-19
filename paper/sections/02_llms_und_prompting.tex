@@ -1,27 +1,26 @@
 \section{LLMs and Prompting}
 \label{sec:llms}
-Large Language Models (LLMs) are a class of artificial intelligence systems
-trained on large amounts of textual data. Their primary objective is to predict
-the next token in a sequence, enabling them to generate coherent and
-contextually relevant responses. Through this process, modern LLMs are capable
-of performing a wide variety of tasks, including summarisation, translation,
-question answering, and code generation.
 
-Interaction with an LLM occurs through prompts. In practical deployments, the
-model typically receives both developer-defined instructions and user-supplied
-input. The developer-defined instructions, commonly referred to as the
-\textit{system prompt}, specify the desired behaviour of the model, while the
-\textit{user prompt} contains the task or request supplied by the user. These
-inputs are combined into a single context window and processed together by the
-model.
+Large Language Models are typically pretrained to predict tokens conditioned on
+preceding context. This objective supports general-purpose instruction following
+after further training, enabling tasks such as summarisation, translation,
+question answering, and code generation
+\parencites{brown2020language}{chen2025struq}.
 
-This architecture represents the foundation of prompt injection attacks. Since
-instructions and user input are processed within the same token sequence, the
-boundary between trusted instructions and untrusted content is not enforced
-structurally. Consequently, an attacker may attempt to craft inputs that
-override or interfere with the intended behaviour of the system
-~\parencite{liu2023promptinjection}.
+In an LLM-integrated application, the model may receive application-provided
+higher-priority instructions, a user request, retrieved data, and tool results.
+Interfaces normally encode these components using role markers or delimiters,
+and instruction-hierarchy training can teach a model to prioritise some channels
+over others
+\parencite{wallace2024instruction}. These distinctions are meaningful inputs to
+the model. They do not, however, constitute an independently enforced authority
+mechanism: generation still depends on learned behaviour over the combined
+context.
 
-This absence of a structural boundary between trusted instructions and untrusted
-data is the fundamental condition that makes prompt injection attacks possible,
-as the following section examines in detail.
+Prompt injection exploits failures of that learned prioritisation. An attacker
+crafts text in an untrusted channel so that the model treats it as a controlling
+instruction rather than as task-relevant data
+\parencite{liu2023promptinjection}. Structured prompting can make the intended
+roles clearer and model training can improve adherence to them, but downstream
+security should not assume that formatting alone prevents untrusted text from
+influencing generation.
