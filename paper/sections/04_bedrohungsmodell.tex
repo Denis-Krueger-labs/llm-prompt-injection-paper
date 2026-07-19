@@ -1,59 +1,28 @@
 \section{Threat Model}
 \label{sec:threat}
 
-A threat model states which components and inputs are trusted, which access an
-attacker may obtain, and which security properties a defence should preserve.
-This is necessary because prompt-injection evaluations make substantially
-different assumptions. Resistance to malicious text in a document does not
+Prompt-injection evaluations differ in attacker access, knowledge, and delivery
+conditions. Resistance to malicious text in a document does not necessarily
 imply resistance to an attacker with model gradients, defence details, or
-fine-tuning checkpoints.
-
-This paper considers text-based prompt injection against LLM-integrated
-applications. It distinguishes the target system, the access and knowledge used
-during payload construction, the channel used for payload delivery, and the
-security consequences of a successful attack.
+fine-tuning checkpoints. This section defines the assumptions used to interpret
+the evaluations of StruQ, SecAlign, and later adaptive attacks.
 
 \subsection{System Model}
 \label{subsec:system-model}
 
-The considered system contains five principal components:
-
-\begin{enumerate}
-    \item a trusted instruction and policy source controlled by the application
-          operator;
-    \item untrusted input channels, including direct user input and external
-          data sources;
-    \item an application layer that assembles context, invokes the model, and
-          applies release or action policies outside it;
-    \item an LLM that generates an output or proposes a tool call; and
-    \item connected tools or services that may execute a proposed action,
-          subject to application-level authorisation checks.
-\end{enumerate}
-
-The system also involves distinct human or organisational principals: the
-attacker, the legitimate user, the application operator, the owner of processed
-data, and the provider of a connected tool or service. One party may occupy
-several roles, but their authority is not interchangeable. In particular,
-attacker-controlled content does not acquire the user's or operator's authority
-merely because the model processes it in a session that can access their data or
-credentials
+The considered application combines a trusted task instruction with untrusted
+direct input or externally retrieved content. An LLM processes the resulting
+context and either returns a response or proposes an action through a connected
+tool. Attacker-controlled content does not acquire the authority of the user or
+application operator merely because it is processed in a session that can access
+their data or credentials
 \parencites{greshake2023indirect}{debenedetti2024agentdojo}.
 
-The trusted instruction defines the intended task, such as summarising a
-document or extracting information from an email. Untrusted data may originate
-from a user, website, retrieved document, email, uploaded file, API response, or
-tool output. The application may also contain RAG pipelines, prompt templates,
-memory, and interfaces to tools. These components determine which information
-reaches the model and which consequences its output may have.
-
-Figure~\ref{fig:threat-model} shows the principal trust transitions. Trusted and
-untrusted inputs both reach the application context. Generated output should be
-released only to an authorised recipient and for a permitted purpose; egress
-checks may additionally constrain protected data, destinations, or active
-content. Proposed external actions pass through a separate policy and
-authorisation component. These controls represent the system-level protection
-recommended later; they are not assumed to make the model itself resistant to
-injection.
+Figure~\ref{fig:threat-model} shows the relevant trust transitions. Generated
+responses may be returned to the user, whereas consequential tool actions should
+pass through an external policy and authorisation gate. These controls limit the
+consequences of model failure but are not assumed to make the model itself
+resistant to injection.
 
 \begin{figure}[htbp]
     \centering
@@ -96,163 +65,68 @@ injection.
     \label{fig:threat-model}
 \end{figure}
 
-A read-only application may be limited to a manipulated response or disclosure
-of information. An agentic application may allow the same model-level failure
-to influence messages, file operations, or remote services. The security impact
-therefore depends on the authority and protected data exposed by the system, not
-only on whether the model followed an injected string
+The impact of a successful injection depends on the authority exposed by the
+surrounding application. In a read-only system, the result may be a manipulated
+response or information disclosure. In an agentic system, the same model-level
+failure may influence messages, files, or external services
 \parencite{debenedetti2024agentdojo}.
 
 \subsection{Attacker Model}
 \label{subsec:attacker-model}
 
-The attacker controls at least one untrusted input channel. In a direct attack,
-the attacker submits malicious input through a user-facing interface. In an
-indirect attack, the attacker controls content later processed by the
-application, for example by publishing a webpage, sending an email, supplying a
-document, or influencing an API or tool response
-\parencite{greshake2023indirect}.
+The attacker controls at least one untrusted input channel. As described in
+Section~\ref{sec:prompt-injection}, the payload may be submitted directly or
+placed in external content later processed by the application. Delivery is
+separate from payload construction: an attack created with white-box access may
+still be delivered indirectly through a document, webpage, or tool response.
 
-Indirect delivery does not require the attacker to query the target model. It is
-sufficient that the application later includes the malicious content in the
-model context. This delivery condition remains separate from any model access
-used to construct the payload.
-
-Attacker capability is recorded along five dimensions:
-
-\begin{enumerate}
-    \item query access to the target or a surrogate model;
-    \item access to target weights, gradients, activations, or checkpoints;
-    \item knowledge of the trusted instruction and surrounding context;
-    \item knowledge of the deployed defence and application format; and
-    \item the direct or indirect channel available for delivery.
-\end{enumerate}
-
-These dimensions prevent black-, grey-, and white-box terminology from being
-used as a shorthand for all attacker knowledge.
-
-\subsubsection{Black-Box Model Access}
-
-A black-box attacker has no access to target-model weights, gradients, internal
-activations, or checkpoints. The attacker may still query the model or observe
-externally visible behaviour. Black-box model access does not imply weak system
-knowledge: an attacker may know the prompt template or deployed defence without
-seeing model internals.
-
-Handcrafted direct and indirect injections commonly fit this access model. A
-black-box attacker may nevertheless adapt a payload through repeated queries if
-the target exposes sufficient feedback.
-
-\subsubsection{Grey-Box Model Access}
-
-A grey-box attacker has partial internal information or access to a related
-surrogate, but not the complete target internals required to compute exact
-gradients for the deployed model. Knowledge of the model family, delimiter
-format, or defence mechanism should be reported separately; none is sufficient
-on its own to define grey-box access.
-
-This distinction is relevant to transfer attacks. A suffix may be constructed
-on an accessible surrogate and then tested against a related target. Transfer
-must be demonstrated empirically rather than assumed.
-
-\subsubsection{White-Box Model Access}
-
-A white-box attacker has the internal information required by the chosen
-optimisation method. GCG uses model gradients, Checkpoint-GCG additionally uses
-intermediate fine-tuning checkpoints, and ASTRA uses weights, gradients, and
-internal attention information
+A \emph{black-box} attacker can query the target or observe its output but
+cannot access internal model information. A \emph{grey-box} attacker has partial
+information or access to a related surrogate model, which may support transfer
+attacks. A \emph{white-box} attacker has the internal information required by
+the chosen optimisation method. GCG uses model gradients, Checkpoint-GCG also
+uses intermediate fine-tuning checkpoints, and ASTRA uses gradients and
+attention information
 \parencites{zou2023universal}{yang2025checkpointgcg}{pandya2025astra}.
 
-This access is less representative of a direct attack against a closed
-commercial model. It remains relevant for open-weight deployments and for
-auditing whether robustness persists when an attacker adapts to the defence.
-The realism of payload delivery and the strength of payload construction should
-therefore be assessed separately.
-
-\subsubsection{Context Knowledge, Defence Knowledge, and Delivery}
-
-Context knowledge records whether the attacker knows the trusted instruction,
-prompt template, private conversation history, and other text in the target
-context. Defence knowledge records whether the attacker knows filters,
-delimiters, defensive training, or policy checks.
-
-ASTRA illustrates why these dimensions cannot be collapsed. Its
-\emph{strong-knowledge} and \emph{weak-knowledge} settings both assume an
-adaptive white-box attacker with model and defence access. Strong knowledge
-additionally reveals the preceding context; weak knowledge withholds that
-context. Neither term is synonymous with black- or grey-box model access
-\parencite{pandya2025astra}.
-
-Delivery is independent again. A payload constructed with white-box access may
-be placed in a document for indirect delivery. Conversely, a direct attacker
-may have black-box model access but detailed knowledge of the deployed defence.
+Model access does not describe every attacker capability. Knowledge of the
+trusted context, knowledge of the deployed defence, and the available delivery
+channel should therefore be reported as separate dimensions. This distinction
+is important when comparing manually constructed attacks with adaptive
+evaluations that explicitly target the defence
+\parencites{greshake2023indirect}
+             {zou2023universal}
+             {yang2025checkpointgcg}
+             {pandya2025astra}.
 
 \subsection{Security Goals}
 \label{subsec:security-goals}
 
-A prompt-injection defence should preserve three principal properties.
+The threat model considers three principal security goals.
+\emph{Instruction integrity} requires untrusted content to remain data rather
+than acquire authority to override trusted instructions or security policy.
+\emph{Confidentiality} requires protected context to be disclosed only to
+authorised recipients. \emph{Action integrity} requires tool calls and
+security-relevant parameters to remain within the authority granted by the
+application
+\parencites{chen2025struq}{chen2025secalign}
+             {fspib2025}{debenedetti2024agentdojo}.
 
-\paragraph{Instruction integrity.}
-
-Untrusted content may and often must influence the task-relevant information
-processed by the model. It must not thereby acquire authority to alter security
-policy, authorise actions, redirect protected information, or override trusted
-control instructions. Instructions quoted inside a document, email, website, or
-tool output may be analysed as data without gaining the authority of the trusted
-instruction channel
-\parencites{chen2025struq}{chen2025secalign}.
-
-\paragraph{Confidentiality of protected context.}
-
-Attacker-controlled content should not cause the application to disclose system
-instructions, private user data, retrieved secrets, or other information to a
-principal that is not authorised to receive it.
-
-\paragraph{Action integrity.}
-
-In systems with tool access, attacker-controlled content should not cause an
-unauthorised operation or manipulate security-relevant parameters. Examples
-include sending a message, modifying a file, selecting an attacker-controlled
-recipient, or transmitting protected data
-\parencites{fspib2025}{debenedetti2024agentdojo}.
-
-These goals distinguish a security violation from harmless exposure to
-malicious text. An attack succeeds in the security sense when it violates
-instruction integrity, confidentiality, or action integrity.
-
-The target-output Attack Success Rate (ASR) used in many model-level
-evaluations is mainly a proxy for instruction-following compromise. It does not
-by itself show that protected information was disclosed or that an unauthorised
-tool action was executed. System-level evaluations must therefore measure
-goal-specific outcomes in addition to target-string compliance
+The target-output Attack Success Rate used in many model-level evaluations is
+primarily a proxy for instruction-integrity failure. It does not by itself
+demonstrate confidential-data disclosure or unauthorised tool execution.
+System-level evaluations must therefore measure the actual security consequence
+in addition to target-string compliance
 \parencites{jia2025critical}{debenedetti2024agentdojo}.
 
 \subsection{Assumptions and Scope}
 \label{subsec:threat-scope}
 
-The trusted instruction source, application policy, and defence implementation
-are assumed not to have been directly compromised. If an attacker can modify the
-trusted prompt, replace the model, alter application code, or change the
-authorisation policy, the problem is no longer limited to prompt injection.
+The analysis covers runtime, text-based prompt injection delivered through
+direct user input or external content processed by an otherwise uncompromised
+application. The trusted instruction source, application policy, model, and
+defence implementation are assumed not to have been directly compromised.
 
-\emph{In scope} are runtime, text-based prompt injections delivered through a
-direct malicious input or through content processed by an otherwise
-uncompromised application. This includes malicious instructions in retrieved
-documents, emails, webpages, API responses, and outputs returned by connected
-tools. Untrusted tool output is in scope even when the tool implementation is
-not compromised.
-
-\emph{Partially in scope} are social engineering and availability consequences.
-Social engineering is considered only as a residual risk of human approval, not
-as an empirically evaluated attack class. FSPIB treats response refusal as an
-information-level threat, whereas resource exhaustion is an availability
-impact. Neither denial-of-service resilience nor availability is evaluated as a
-security goal here
-\parencite{fspib2025}.
-
-\emph{Out of scope} are multimodal injection, training-data poisoning, direct
-compromise of a retriever or index, application or infrastructure compromise,
-malicious tool implementations, insider threats, model-provider compromise, and
-cross-session or memory-based persistence. Stored untrusted text can still
-deliver an ordinary indirect injection when reloaded, but attacks that corrupt
-the memory mechanism itself are not analysed.
+Multimodal injection, training-data poisoning, persistent memory compromise,
+denial of service, malicious insiders, model-provider compromise, and direct
+application or infrastructure exploitation are outside the scope of this paper.
