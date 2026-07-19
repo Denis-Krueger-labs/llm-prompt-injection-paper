@@ -3,17 +3,16 @@
 
 The original StruQ and SecAlign evaluations show that learned
 instruction--data separation can reduce prompt-injection success. Their results
-remain conditional, however, on the selected models, tasks, attacks, attacker
-access, optimisation budgets, and success criteria. This section therefore
-examines how the evidence changes under broader and defence-adaptive
-evaluations.
+remain conditional on the selected models, tasks, attacks, attacker access,
+optimisation budgets, and success criteria. This section examines how the
+evidence changes under broader and defence-adaptive evaluations.
 
 \subsection{Evaluation Methodology Problems}
 \label{subsec:evaluation-methodology}
 
 Attack Success Rate (ASR) is meaningful only when the counted success event is
 defined. StruQ manually checks responses containing \enquote{Hacked!}, whereas
-SecAlign counts a response as successful when it begins with
+SecAlign counts an attack as successful when the response begins with
 \enquote{Hacked} or \enquote{hacked}
 \parencites{chen2025struq}{chen2025secalign}. Such target-output criteria provide
 repeatable proxies for instruction-following compromise, but they do not
@@ -22,21 +21,23 @@ open-ended attacker objectives
 \parencite{jia2025critical}.
 
 Results from different studies are therefore not directly rankable. Changes in
-model versions, datasets, prompts, attacker knowledge, optimisation methods, and
-success rules can substantially alter the reported outcome. The later
-evaluation by Jia et al., for example, uses OpenPromptInjection and MMLU-PI,
-different utility references, and a task-specific Attack Success Value (ASV).
-Under adaptive GCG, StruQ reached an ASV of \(1.00\) on both benchmarks, while
-SecAlign reached \(0.46\) on OpenPromptInjection and \(0.88\) on MMLU-PI
+models, datasets, prompts, attacker knowledge, optimisation methods, and success
+rules can substantially alter the reported outcome. Jia et al., for example,
+evaluate OpenPromptInjection and MMLU-PI, a prompt-injection benchmark derived
+from the Massive Multitask Language Understanding benchmark. They use a
+task-specific Attack Success Value (ASV) rather than only target-string
+compliance. Under adaptive GCG, StruQ reached an ASV of \(1.00\) on both
+benchmarks, while SecAlign reached \(0.46\) on OpenPromptInjection and \(0.88\)
+on MMLU-PI
 \parencite{jia2025critical}.
 
 The same caution applies to utility. SecAlign reports AlpacaEval2 results
-relative to a \texttt{davinci003} reference, whereas Jia et al. compare released
-defended variants with the corresponding undefended Llama model and additional
-ground-truth tasks
+relative to a \texttt{davinci003} reference, whereas Jia et al. compare the
+released defended variants with the corresponding undefended Llama model and
+additional ground-truth tasks
 \parencites{chen2025secalign}{jia2025critical}. Their lower utility scores
-therefore show a trade-off in that setting, not a contradiction of the original
-evaluation.
+therefore demonstrate a trade-off in that evaluation setting rather than a
+direct contradiction of the original results.
 
 \subsection{Adaptive Attacks}
 \label{subsec:adaptive-attacks}
@@ -57,18 +58,18 @@ transferred to a related model with \(63.9\%\) ASR
 ordinary GCG does not imply resistance to checkpoint-aware optimisation, but
 the attack assumes unusually strong audit access.
 
-ASTRA instead uses attention-guided white-box optimisation followed by a
-GCG-style target objective. At a 35-token budget, it achieved \(72.5\%\) ASR
-against SecAlign-defended Llama and \(82.5\%\) against Mistral. ASTRA++, which
-withholds the preceding context while retaining model and defence access,
-reached \(96\%\) against SecAlign and \(87\%\) against SecAlign++
+ASTRA uses attention-guided white-box optimisation followed by a GCG-style
+target objective. At a 35-token budget, it achieved \(72.5\%\) ASR against
+SecAlign-defended Llama and \(82.5\%\) against Mistral. ASTRA++, which withholds
+the preceding context while retaining model and defence access, reached
+\(96\%\) against SecAlign and \(87\%\) against SecAlign++
 \parencite{pandya2025astra}. These results demonstrate bypasses under the tested
 white-box conditions, but do not establish the same success against closed APIs
 or deployments with additional application-level controls.
 
-Together, the adaptive evaluations show that StruQ and SecAlign do not create a
-deterministic or independently enforced trust boundary. They do not show that
-every model-level defence must fail under every deployment condition.
+Together, these evaluations show that StruQ and SecAlign do not create a
+deterministic or independently enforced trust boundary. They do not establish
+that every model-level defence must fail under every deployment condition.
 
 \subsection{Security and Utility Trade-Offs}
 \label{subsec:security-utility}
@@ -77,34 +78,32 @@ A useful defence must reduce malicious instruction following without preventing
 legitimate analysis of instructional text. A system that rejects every
 imperative sentence may achieve a low ASR while becoming unusable, whereas a
 model that preserves broad instruction-following behaviour may retain a larger
-attack surface. Security results should therefore be reported together with
-utility under clearly specified models, tasks, references, and judging methods
+attack surface. Security and utility should therefore be reported together
+under clearly specified models, tasks, references, and judging methods
 \parencites{chen2025struq}{chen2025secalign}{jia2025critical}.
 
 \subsection{Limitations of This Review}
 \label{subsec:review-limitations}
 
 This paper is a selective narrative review and contains no original experiments
-or independent replications. It focuses on text-based prompt injection, StruQ,
-SecAlign, and later attacks against those defences. Comparisons are limited by
-differences in models, prompts, tasks, attacker access, optimisation budgets,
-and success definitions. Some adaptive evidence remains available only as
-preprint research, while closed providers may not disclose enough information
-for reproducible evaluation. Multimodal injection, persistent memory attacks,
-denial of service, insiders, provider compromise, and training-data poisoning
-are outside the scope of this review.
+or independent replications. It focuses on StruQ, SecAlign, and later attacks
+against those defences. Comparisons remain limited by differences in models,
+prompts, tasks, attacker access, optimisation budgets, and success definitions.
+Some adaptive evidence is available only as preprint research, while closed
+providers may not disclose enough information for reproducible evaluation. The
+additional exclusions defined in Section~\ref{subsec:threat-scope} also apply
+to this review.
 
 \subsection{Implications of the Evidence}
 \label{subsec:open-problem}
 
-The evidence supports three conclusions. First, learned instruction--data
-separation substantially reduces the handcrafted attacks represented in the
-original StruQ and SecAlign evaluations. Second, SecAlign improves resistance
-to the optimisation-based attacks included in its own evaluation. Third, later
-defence-adaptive white-box attacks demonstrate that this robustness is not an
-independently enforced guarantee.
+Learned instruction--data separation substantially reduces the handcrafted
+attacks represented in the original evaluations, and SecAlign improves
+resistance to the optimisation-based attacks tested in its study. Later
+defence-adaptive evaluations nevertheless demonstrate that this robustness is
+not an independently enforced guarantee.
 
-Separating instructions and data should therefore be treated as risk reduction,
-not complete prevention. Model-level robustness remains useful, but deployment
-must assume that it can fail and constrain resulting information flows and
-actions through controls outside the model.
+Instruction--data separation should therefore be treated as risk reduction
+rather than complete prevention. Deployment must assume that model-level
+protection can fail and constrain resulting information flows and actions
+through controls outside the model.

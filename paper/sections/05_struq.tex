@@ -116,8 +116,8 @@ Most attacks attempted to make the model output a fixed target such as
 
 For the manually constructed attacks, the defended models achieved Attack
 Success Rates (ASRs) between \(0\%\) and \(2\%\). The results were weaker
-against an adapted Greedy Coordinate Gradient (GCG) attack, which uses model
-gradients during payload construction. StruQ reduced ASR from \(97\%\) to
+against the adapted GCG attack described in
+Section~\ref{subsec:attack-construction}. StruQ reduced ASR from \(97\%\) to
 \(58\%\) on Llama and from \(99\%\) to \(56\%\) on Mistral
 \parencites{chen2025struq}{zou2023universal}.
 
@@ -159,7 +159,7 @@ output follows the inserted instruction
 Unlike StruQ, SecAlign does not require a newly reserved token vocabulary and
 can be applied to existing prompt formats. The application must nevertheless
 continue to distinguish the trusted instruction from the untrusted data.
-SecAlign changes model behaviour; it does not infer trustworthy provenance on
+SecAlign changes model behaviour; it does not infer trustworthy origin on
 behalf of the application.
 
 \subsubsection{Evaluation and Comparison with StruQ}

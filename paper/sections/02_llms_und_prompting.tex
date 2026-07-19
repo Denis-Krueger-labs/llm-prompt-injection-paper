@@ -1,26 +1,16 @@
 \section{LLMs and Prompting}
 \label{sec:llms}
 
-Large Language Models are typically pretrained to predict tokens conditioned on
-preceding context. This objective supports general-purpose instruction following
-after further training, enabling tasks such as summarisation, translation,
+Large Language Models are pretrained to predict tokens from preceding context.
+After instruction tuning, this enables tasks such as summarisation, translation,
 question answering, and code generation
 \parencites{brown2020language}{chen2025struq}.
 
-In an LLM-integrated application, the model may receive application-provided
-higher-priority instructions, a user request, retrieved data, and tool results.
-Interfaces normally encode these components using role markers or delimiters,
-and instruction-hierarchy training can teach a model to prioritise some channels
-over others
-\parencite{wallace2024instruction}. These distinctions are meaningful inputs to
-the model. They do not, however, constitute an independently enforced authority
-mechanism: generation still depends on learned behaviour over the combined
-context.
-
-Prompt injection exploits failures of that learned prioritisation. An attacker
-crafts text in an untrusted channel so that the model treats it as a controlling
-instruction rather than as task-relevant data
-\parencite{liu2023promptinjection}. Structured prompting can make the intended
-roles clearer and model training can improve adherence to them, but downstream
-security should not assume that formatting alone prevents untrusted text from
-influencing generation.
+In an LLM-integrated application, the model context may contain
+application-provided instructions, a user request, retrieved data, and tool
+results. Role markers and delimiters can signal that some components should
+receive higher priority than others, and instruction-hierarchy training can
+strengthen this behaviour
+\parencite{wallace2024instruction}. However, these distinctions remain inputs
+interpreted by the model rather than an independently enforced authority
+mechanism.

@@ -2,10 +2,10 @@
 \label{sec:threat}
 
 Prompt-injection evaluations differ in attacker access, knowledge, and delivery
-conditions. Resistance to malicious text in a document does not necessarily
-imply resistance to an attacker with model gradients, defence details, or
-fine-tuning checkpoints. This section defines the assumptions used to interpret
-the evaluations of StruQ, SecAlign, and later adaptive attacks.
+conditions. A defence that resists malicious text in a document may not resist
+an attack constructed using internal model information or saved fine-tuning
+states. This section defines the assumptions used to interpret the evaluations
+of StruQ, SecAlign, and later adaptive attacks.
 
 \subsection{System Model}
 \label{subsec:system-model}
@@ -65,29 +65,28 @@ resistant to injection.
     \label{fig:threat-model}
 \end{figure}
 
-The impact of a successful injection depends on the authority exposed by the
-surrounding application. In a read-only system, the result may be a manipulated
-response or information disclosure. In an agentic system, the same model-level
-failure may influence messages, files, or external services
-\parencite{debenedetti2024agentdojo}.
-
 \subsection{Attacker Model}
 \label{subsec:attacker-model}
 
-The attacker controls at least one untrusted input channel. As described in
-Section~\ref{sec:prompt-injection}, the payload may be submitted directly or
-placed in external content later processed by the application. Delivery is
-separate from payload construction: an attack created with white-box access may
-still be delivered indirectly through a document, webpage, or tool response.
+The attacker controls at least one of the untrusted delivery channels described
+in Section~\ref{subsec:direct-indirect}. The delivery channel is considered
+separately from the access used to construct the payload: an attack created
+with white-box access may still be delivered indirectly through ordinary
+external content.
 
 A \emph{black-box} attacker can query the target or observe its output but
-cannot access internal model information. A \emph{grey-box} attacker has partial
+cannot access model internals. A \emph{grey-box} attacker has partial
 information or access to a related surrogate model, which may support transfer
 attacks. A \emph{white-box} attacker has the internal information required by
-the chosen optimisation method. GCG uses model gradients, Checkpoint-GCG also
-uses intermediate fine-tuning checkpoints, and ASTRA uses gradients and
-attention information
-\parencites{zou2023universal}{yang2025checkpointgcg}{pandya2025astra}.
+the chosen optimisation method.
+
+As described in Section~\ref{subsec:attack-construction}, GCG uses model
+gradients. Checkpoint-GCG additionally requires fine-tuning checkpoints, which
+are saved intermediate states of the model, while ASTRA also uses attention
+information
+\parencites{zou2023universal}
+             {yang2025checkpointgcg}
+             {pandya2025astra}.
 
 Model access does not describe every attacker capability. Knowledge of the
 trusted context, knowledge of the deployed defence, and the available delivery
@@ -109,8 +108,10 @@ than acquire authority to override trusted instructions or security policy.
 authorised recipients. \emph{Action integrity} requires tool calls and
 security-relevant parameters to remain within the authority granted by the
 application
-\parencites{chen2025struq}{chen2025secalign}
-             {fspib2025}{debenedetti2024agentdojo}.
+\parencites{chen2025struq}
+             {chen2025secalign}
+             {fspib2025}
+             {debenedetti2024agentdojo}.
 
 The target-output Attack Success Rate used in many model-level evaluations is
 primarily a proxy for instruction-integrity failure. It does not by itself
