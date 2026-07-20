@@ -14,13 +14,14 @@ The literature distinguishes two principal delivery mechanisms
 \parencite{greshake2023indirect}.
 
 In a \emph{direct prompt injection}, a malicious user submits the payload
-through the application's ordinary input channel. The attacker may ask the
+through the application's ordinary input channel, where it is then combined 
+with the trusted application instruction. The attacker may ask the
 model to ignore the established task, imitate a higher-priority instruction,
 or begin a new task
 \parencite{perez2022ignore}. Figure~\ref{fig:direct-prompt-injection} shows the
 trusted instruction and the competing attacker-controlled input.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \begin{tikzpicture}[
         box/.style={draw, rounded corners, align=center, text width=2.5cm,
@@ -45,9 +46,7 @@ trusted instruction and the competing attacker-controlled input.
         \draw[flow] (llm) -- (output);
     \end{tikzpicture}
     \caption[Direct prompt injection]{Direct prompt injection through the
-    application's user-input channel. The malicious input is combined with the
-    trusted application instruction during prompt construction. Original
-    schematic based on \textcite{perez2022ignore}.}
+    application's user-input channel. Original schematic based on \textcite{perez2022ignore}.}
     \label{fig:direct-prompt-injection}
 \end{figure}
 
@@ -66,7 +65,7 @@ attacker-controlled content can reach the model
 Figure~\ref{fig:indirect-prompt-injection} illustrates, trusted and untrusted
 inputs then converge during context assembly.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
     \centering
     \begin{tikzpicture}[
         box/.style={draw, rounded corners, align=center, text width=2.3cm,
@@ -94,9 +93,8 @@ inputs then converge during context assembly.
         \draw[flow] (llm) -- (effect);
     \end{tikzpicture}
     \caption[Indirect prompt injection]{Indirect prompt injection through
-    attacker-controlled external content retrieved at run time. The content is
-    incorporated into the application context together with the trusted task
-    instruction. Original schematic based on
+    attacker-controlled external content retrieved at run time. Original
+    schematic based on
     \textcite{greshake2023indirect}.}
     \label{fig:indirect-prompt-injection}
 \end{figure}
@@ -141,16 +139,16 @@ exchange before introducing a new instruction.
 
 Optimisation-based attacks instead search for token sequences that increase the
 probability of an attacker-selected output. Greedy Coordinate Gradient (GCG)
-is a prominent example. A model gradient estimates how changes to the input
-would affect the attack objective. GCG uses gradients with respect to token
+is a prominent example. GCG uses gradients with respect to token
 representations to rank candidate substitutions and iteratively construct an
-adversarial suffix
-\parencite{zou2023universal}.
+adversarial suffix. A model gradient estimates how changes to the input
+would affect the attack objective~\parencite{zou2023universal}.
 
 GCG was introduced for jailbreaking safety-aligned models, but StruQ and
-SecAlign adapt its objective to prompt injection
-\parencites{chen2025struq}{chen2025secalign}. The distinction lies in the
-security objective: a jailbreak attempts to override a provider's safety
-policy, whereas prompt injection redirects an application- or user-defined
-trusted task through attacker-controlled content. The same construction method
-can support either objective without making the threat models identical.
+SecAlign adapt its objective to prompt injection, in order for them to 
+also defend against it~\parencites{chen2025struq}{chen2025secalign}. 
+The distinction lies in the security objective: a jailbreak attempts 
+to override a provider's safety policy, whereas prompt injection redirects 
+an application- or user-defined trusted task through attacker-controlled content. 
+The same construction method can support either objective without making the 
+threat models identical.
