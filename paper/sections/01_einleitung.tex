@@ -11,23 +11,34 @@ content processed by the model. If the model follows the injected instruction
 instead of the trusted task, it may manipulate a response, disclose protected
 information, or influence a connected tool
 \parencites{perez2022ignore}{greshake2023indirect}. The 2025 OWASP Top 10 for
-LLM Applications consequently lists prompt injection as LLM01
+LLM Applications assigns prompt injection the identifier \emph{LLM01}, marking
+it as the first category listed in the document
 \parencite{owasp2025llm}.
 
 Applications can encode developer instructions, user input, and tool results
 using different roles or delimiters. These distinctions influence model
 behaviour, but they do not constitute access control. Unlike a prepared SQL
 statement, a prompt format does not give natural-language text a reliably
-enforced type or authority. Security cannot therefore rely on the model alone
-to preserve source and instruction priority
+enforced type or authority. Security cannot therefore rely on formatting alone
+to preserve the distinction between trusted instructions and untrusted data
 \parencites{liu2023promptinjection}{wallace2024instruction}.
 
-Research addresses the problem at several layers. Model-level approaches train
-the LLM to prioritise trusted instructions, while application- and system-level
-controls restrict information flows, credentials, tools, and external actions.
-This paper focuses on StruQ and SecAlign as case studies of learned
-instruction--data separation and considers system-level controls for limiting
-the consequences when that separation fails.
+StruQ and SecAlign address this problem by training models to maintain an
+instruction--data separation. Their original evaluations report substantial
+reductions in attack success, particularly against manually constructed attacks
+\parencites{chen2025struq}{chen2025secalign}. However, reported robustness is
+difficult to compare across studies because evaluations differ in models,
+tasks, attacker access, optimisation methods, and success criteria. Later
+defence-adaptive studies further question whether results obtained under narrow
+attack suites generalise to stronger attacker models
+\parencites{jia2025critical}
+             {yang2025checkpointgcg}
+             {pandya2025astra}.
+
+This creates two related questions: how much security can learned
+instruction--data separation provide under the evaluated conditions, and how
+should applications limit the consequences when the model still follows an
+injected instruction?
 
 \medskip
 \noindent\textbf{Research Question} \quad
@@ -37,18 +48,15 @@ system-level controls are required when they do not provide an independently
 enforced security boundary?}
 
 \medskip
-This paper is a scoped narrative review based primarily on published primary
-sources available up to 19 July 2026. Recent preprints are included where they
-provide defence-adaptive evaluations of StruQ or SecAlign. The studies are
-compared according to attacker access, attack construction, success criteria,
-utility impact, transferability, and enforcement assumptions. Results from
-different evaluations are not treated as directly comparable when their models,
-tasks, datasets, or optimisation budgets differ. No original experiments or
-independent replications were conducted.
+To answer this question, the paper compares the original StruQ and SecAlign
+evaluations with later defence-adaptive studies and relates their limitations
+to system-level security controls. No original experiments or independent
+replications are conducted.
 
-The reviewed evidence indicates that learned instruction--data separation can
-substantially reduce prompt-injection success under the evaluated conditions,
-but does not provide independently enforced prevention. Its effectiveness
-remains dependent on the model, task, attacker, and evaluation design. Secure
-deployment must therefore combine model-level robustness with external
-authorisation, containment, monitoring, and defence in depth.
+Chapter~\ref{sec:llms} introduces LLM prompting and structured context.
+Chapter~\ref{sec:prompt-injection} describes prompt-injection delivery and
+construction methods, and Chapter~\ref{sec:threat} defines the threat model used
+for the comparison. Chapter~\ref{sec:struq} examines StruQ and SecAlign, while
+Chapter~\ref{sec:limits} evaluates the limits of their reported robustness.
+Chapter~7 derives practical deployment implications, and
+Chapter~\ref{sec:conclusion} answers the research question.
