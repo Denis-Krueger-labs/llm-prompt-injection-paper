@@ -3,9 +3,9 @@
 
 Prompt-injection evaluations differ in attacker access, knowledge, and delivery
 conditions. A defence that resists malicious text in a document may not resist
-an attack constructed using internal model information or saved fine-tuning
-states. This section defines the assumptions used to interpret the evaluations
-of StruQ, SecAlign, and later adaptive attacks.
+an attack constructed using internal model information or fine-tuning
+checkpoints. This section defines the assumptions used to interpret the
+evaluations of StruQ, SecAlign, and later adaptive attacks.
 
 \subsection{System Model}
 \label{subsec:system-model}
@@ -55,12 +55,10 @@ resistant to injection.
         \draw[flow] (llm) -- (policy);
         \draw[flow] (policy) -- (tool);
     \end{tikzpicture}
-    \caption[Threat model for an LLM-integrated application]{Simplified threat
-    model for an LLM-integrated application. Trusted instructions and
-    untrusted content are assembled into the model context. Generated responses
-    may be returned to the user, while proposed tool actions pass through a
-    policy and authorisation gate. Original schematic based on
-    \textcite{greshake2023indirect} and
+    \caption[Threat model for an LLM-integrated application]{Trusted
+    instructions and untrusted content enter the model context, while proposed
+    tool actions pass through an external authorisation gate. Original
+    schematic based on \textcite{greshake2023indirect} and
     \textcite{debenedetti2024agentdojo}.}
     \label{fig:threat-model}
 \end{figure}
@@ -82,11 +80,8 @@ the chosen optimisation method.
 
 As described in Section~\ref{subsec:attack-construction}, GCG uses model
 gradients. Checkpoint-GCG additionally requires fine-tuning checkpoints, which
-are saved intermediate states of the model, while ASTRA also uses attention
-information
-\parencites{zou2023universal}
-             {yang2025checkpointgcg}
-             {pandya2025astra}.
+are saved intermediate states of the model
+\parencites{zou2023universal}{yang2025checkpointgcg}.
 
 Model access does not describe every attacker capability. Knowledge of the
 trusted context, knowledge of the deployed defence, and the available delivery
@@ -98,35 +93,13 @@ evaluations that explicitly target the defence
              {yang2025checkpointgcg}
              {pandya2025astra}.
 
-\subsection{Security Goals}
-\label{subsec:security-goals}
-
-The threat model considers three principal security goals.
-\emph{Instruction integrity} requires untrusted content to remain data rather
-than acquire authority to override trusted instructions or security policy.
-\emph{Confidentiality} requires protected context to be disclosed only to
-authorised recipients. \emph{Action integrity} requires tool calls and
-security-relevant parameters to remain within the authority granted by the
-application
-\parencites{chen2025struq}
-             {chen2025secalign}
-             {fspib2025}
-             {debenedetti2024agentdojo}.
-
-The target-output Attack Success Rate used in many model-level evaluations is
-primarily a proxy for instruction-integrity failure. It does not by itself
-demonstrate confidential-data disclosure or unauthorised tool execution.
-System-level evaluations must therefore measure the actual security consequence
-in addition to target-string compliance
-\parencites{jia2025critical}{debenedetti2024agentdojo}.
-
 \subsection{Assumptions and Scope}
 \label{subsec:threat-scope}
 
-The analysis covers runtime, text-based prompt injection delivered through
-direct user input or external content processed by an otherwise uncompromised
-application. The trusted instruction source, application policy, model, and
-defence implementation are assumed not to have been directly compromised.
+The analysis covers runtime, text-based prompt injection in otherwise
+uncompromised LLM-integrated applications. The trusted instruction source,
+application policy, model, and defence implementation are assumed not to have
+been directly compromised.
 
 Multimodal injection, training-data poisoning, persistent memory compromise,
 denial of service, malicious insiders, model-provider compromise, and direct
