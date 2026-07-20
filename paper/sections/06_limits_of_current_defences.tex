@@ -22,13 +22,27 @@ open-ended attacker objectives
 
 Results from different studies are therefore not directly rankable. Changes in
 models, datasets, prompts, attacker knowledge, optimisation methods, and success
-rules can substantially alter the reported outcome. Jia et al., for example,
-evaluate OpenPromptInjection and MMLU-PI, a prompt-injection benchmark derived
-from the Massive Multitask Language Understanding benchmark. They use a
-task-specific Attack Success Value (ASV) rather than only target-string
-compliance. Under adaptive GCG, StruQ reached an ASV of \(1.00\) on both
-benchmarks, while SecAlign reached \(0.46\) on OpenPromptInjection and \(0.88\)
-on MMLU-PI
+rules can substantially alter the reported outcome.
+
+Jia et al. evaluate OpenPromptInjection and MMLU-PI, a prompt-injection
+benchmark derived from the Massive Multitask Language Understanding benchmark.
+They use a task-specific Attack Success Value (ASV), which measures how
+successfully the model performs the injected task. Higher values indicate a
+more successful attack and therefore a less effective defence. Because ASV is
+based on task-specific performance rather than only a binary target-string
+criterion, it is not directly equivalent to ASR
+\parencite{jia2025critical}.
+
+Under adaptive GCG, StruQ reached an ASV of \(1.00\) on both benchmarks, meaning
+that the attack reached the maximum value of the evaluation metric. SecAlign
+reached \(0.46\) on OpenPromptInjection and \(0.88\) on MMLU-PI
+\parencite{jia2025critical}.
+
+This broader evaluation suggests that the strong results of earlier studies
+were partly enabled by narrow test settings, including limited task diversity,
+fixed target outputs, and attacks that were not fully adapted to the defence.
+Robustness observed within such a test scope should therefore not be
+generalised to stronger attacker models
 \parencite{jia2025critical}.
 
 The same caution applies to utility. SecAlign reports AlpacaEval2 results
@@ -54,22 +68,28 @@ achieved ASRs of \(88\%\), \(96\%\), and \(84\%\) against SecAlign-defended
 Llama, Mistral, and Qwen models. Universal suffixes reached \(75.3\%\),
 \(89.9\%\), and \(78.3\%\) on held-out prompts, while one Llama-derived suffix
 transferred to a related model with \(63.9\%\) ASR
-\parencite{yang2025checkpointgcg}. These results show that resistance to
-ordinary GCG does not imply resistance to checkpoint-aware optimisation, but
-the attack assumes unusually strong audit access.
+\parencite{yang2025checkpointgcg}.
+
+These results show that resistance to ordinary GCG does not imply resistance to
+checkpoint-aware optimisation. However, the attack assumes unusually strong
+access to the model, its full input, and intermediate training states.
 
 ASTRA uses attention-guided white-box optimisation followed by a GCG-style
-target objective. At a 35-token budget, it achieved \(72.5\%\) ASR against
-SecAlign-defended Llama and \(82.5\%\) against Mistral. ASTRA++, which withholds
-the preceding context while retaining model and defence access, reached
-\(96\%\) against SecAlign and \(87\%\) against SecAlign++
+target objective. Its token budget specifies how many adversarial tokens the
+attacker may optimise and add to the payload. A larger budget gives the attack
+more opportunities to construct an effective suffix, but also produces a
+longer and potentially less inconspicuous payload.
+
+At a budget of 35 adversarial tokens, ASTRA achieved \(72.5\%\) ASR against
+SecAlign-defended Llama and \(82.5\%\) against Mistral
 \parencite{pandya2025astra}. These results demonstrate bypasses under the tested
 white-box conditions, but do not establish the same success against closed APIs
 or deployments with additional application-level controls.
 
-Together, these evaluations show that StruQ and SecAlign do not create a
-deterministic or independently enforced trust boundary. They do not establish
-that every model-level defence must fail under every deployment condition.
+Together, the adaptive evaluations show that StruQ and SecAlign do not create a
+deterministic or independently enforced trust boundary. They do not establish,
+however, that every model-level defence must fail under every deployment
+condition.
 
 \subsection{Security and Utility Trade-Offs}
 \label{subsec:security-utility}
@@ -78,8 +98,10 @@ A useful defence must reduce malicious instruction following without preventing
 legitimate analysis of instructional text. A system that rejects every
 imperative sentence may achieve a low ASR while becoming unusable, whereas a
 model that preserves broad instruction-following behaviour may retain a larger
-attack surface. Security and utility should therefore be reported together
-under clearly specified models, tasks, references, and judging methods
+attack surface.
+
+Security and utility should therefore be reported together under clearly
+specified models, tasks, references, attack budgets, and judging methods
 \parencites{chen2025struq}{chen2025secalign}{jia2025critical}.
 
 \subsection{Limitations of This Review}
@@ -89,6 +111,7 @@ This paper is a selective narrative review and contains no original experiments
 or independent replications. It focuses on StruQ, SecAlign, and later attacks
 against those defences. Comparisons remain limited by differences in models,
 prompts, tasks, attacker access, optimisation budgets, and success definitions.
+
 Some adaptive evidence is available only as preprint research, while closed
 providers may not disclose enough information for reproducible evaluation. The
 additional exclusions defined in Section~\ref{subsec:threat-scope} also apply
@@ -99,9 +122,10 @@ to this review.
 
 Learned instruction--data separation substantially reduces the handcrafted
 attacks represented in the original evaluations, and SecAlign improves
-resistance to the optimisation-based attacks tested in its study. Later
-defence-adaptive evaluations nevertheless demonstrate that this robustness is
-not an independently enforced guarantee.
+resistance to the optimisation-based attacks tested in its study. Broader and
+defence-adaptive evaluations nevertheless show that this robustness is
+conditional on the evaluation scope and does not constitute an independently
+enforced guarantee.
 
 Instruction--data separation should therefore be treated as risk reduction
 rather than complete prevention. Deployment must assume that model-level

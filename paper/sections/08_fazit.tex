@@ -1,33 +1,42 @@
 \section{Conclusion}
-\label{sec:fazit}
+\label{sec:conclusion}
 
-The effectiveness of learned instruction--data separation depends on the attack
-and evaluation setting. In their original evaluations, StruQ and SecAlign
-substantially reduce success against the tested handcrafted attacks. Standard
-optimisation-based attacks produce mixed results, with the final SecAlign study
-showing a strong within-study improvement over StruQ. Broader and
-defence-adaptive white-box evaluations nevertheless find successful bypasses of
-both approaches. Whether those audit results transfer to closed, dynamically
-configured production systems remains an empirical question.
+The reviewed evidence answers the research question as follows: learned
+instruction--data separation can substantially reduce prompt-injection success
+under the attacker models represented in the original StruQ and SecAlign
+evaluations. SecAlign provides stronger resistance than StruQ against the
+optimisation-based attacks included in its study
+\parencites{chen2025struq}{chen2025secalign}. However, broader and
+defence-adaptive white-box evaluations show that neither approach provides an
+independently enforced security boundary
+\parencites{jia2025critical}
+             {yang2025checkpointgcg}
+             {pandya2025astra}.
 
-The evidence therefore supports mitigation, not complete prevention. StruQ and
-SecAlign learn to prioritise a trusted channel, but the decision remains part of
-probabilistic model behaviour. The reviewed bypasses show that these defences do
-not establish a demonstrated deterministic or independently enforced security
-boundary under the evaluated conditions. They do not prove that every present
-or future model-level defence is impossible.
+Their effectiveness therefore depends on the evaluated model, task, attack
+construction method, attacker access, optimisation budget, and success
+criterion. Strong results against handcrafted attacks or a fixed target output
+should not be generalised to stronger adaptive attackers or different
+application settings. The later evaluations indicate that some early results
+were partly enabled by narrow test scopes and attack suites that were not fully
+adapted to the defence
+\parencite{jia2025critical}.
 
-Secure deployment must consequently constrain model failures at the system
-level. The source should be preserved, tools and credentials should follow least
-privilege, security-relevant parameters should be checked outside the model, and
-high-impact actions should pass an independent policy or approval step.
-Sandboxing, protected monitoring, realistic adversarial testing, and incident
-response provide containment, detection, and recovery rather than substituting
-for access control.
+Learned instruction--data separation should consequently be treated as one
+layer of risk reduction rather than complete prevention. Applications must
+still determine which inputs are trusted and must restrict what the model can
+access or cause. Least privilege, external authorisation, containment,
+monitoring, and independent approval are required when model outputs can expose
+protected information or initiate consequential actions
+\parencites{owasp2025llm}
+             {wu2024systemlevel}
+             {debenedetti2024agentdojo}
+             {debenedetti2025defeating}.
 
-In conclusion, separating instructions and data is a necessary step towards safer LLM 
-integrated systems, but it does not eliminate the underlying vulnerability. Prompt injection
-remains an open problem, and secure deployment will depend not only on advances in
-model capability, but also on stronger architectural guarantees, more rigorous evaluation
-methodologies, and careful attention to emerging threats such as increasingly 
-autonomous agents.
+The available evidence remains limited by differences in models, datasets,
+tasks, attacker access, and evaluation methods. Further research should compare
+defences under shared benchmarks, defence-adaptive attacks, realistic tool use,
+and security outcomes such as disclosure or unauthorised actions rather than
+target-string compliance alone. Until such evaluations provide stronger
+evidence, prompting and learned instruction priority should not be treated as
+security boundaries.
