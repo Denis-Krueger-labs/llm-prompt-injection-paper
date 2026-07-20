@@ -1,44 +1,46 @@
 \section{Introduction}
 \label{sec:einleitung}
 
-Large Language Models (LLMs) are increasingly integrated into applications that
-read emails, summarise documents, retrieve web content, and execute actions on
-behalf of users. This increases their usefulness but also exposes them to
-content controlled by parties other than the application operator.
+Instruction-following LLM applications face a fundamental ambiguity:
+natural-language input can contain both data to be processed and instructions
+that appear actionable. Unlike conventional software interfaces with explicitly
+enforced data types and permissions, an LLM determines through learned
+behaviour which parts of its context to follow. This becomes a security problem
+when trusted instructions and attacker-controlled content are processed
+together.
 
-Prompt injection exploits this exposure by placing malicious instructions in
-content processed by the model. If the model follows the injected instruction
-instead of the trusted task, it may manipulate a response, disclose protected
-information, or influence a connected tool
-\parencites{perez2022ignore}{greshake2023indirect}. The 2025 OWASP Top 10 for
-LLM Applications assigns prompt injection the identifier \emph{LLM01}, marking
-it as the first category listed in the document
+Prompt injection exploits this ambiguity by attempting to redirect the model
+away from its trusted task
+\parencites{perez2022ignore}{greshake2023indirect}. The injected instruction may
+arrive through the user's direct input or through external content retrieved by
+the application. The 2025 OWASP Top 10 for LLM Applications assigns prompt
+injection the identifier \emph{LLM01}, meaning that it is the first risk
+category listed in that document
 \parencite{owasp2025llm}.
 
-Applications can encode developer instructions, user input, and tool results
-using different roles or delimiters. These distinctions influence model
-behaviour, but they do not constitute access control. Unlike a prepared SQL
-statement, a prompt format does not give natural-language text a reliably
-enforced type or authority. Security cannot therefore rely on formatting alone
-to preserve the distinction between trusted instructions and untrusted data
+Applications commonly distinguish developer instructions, user requests,
+retrieved content, and tool results through roles or delimiters. These
+distinctions can influence model behaviour, but they do not provide an
+independently enforced authority mechanism. Unlike a prepared SQL statement, a
+prompt format does not reliably prevent content intended as data from being
+interpreted as an instruction
 \parencites{liu2023promptinjection}{wallace2024instruction}.
 
-StruQ and SecAlign address this problem by training models to maintain an
-instruction--data separation. Their original evaluations report substantial
-reductions in attack success, particularly against manually constructed attacks
-\parencites{chen2025struq}{chen2025secalign}. However, reported robustness is
-difficult to compare across studies because evaluations differ in models,
-tasks, attacker access, optimisation methods, and success criteria. Later
-defence-adaptive studies further question whether results obtained under narrow
-attack suites generalise to stronger attacker models
+StruQ and SecAlign address this problem by training models to preserve a
+separation between trusted instructions and untrusted data
+\parencites{chen2025struq}{chen2025secalign}. Their evaluations, however, use
+different models, attacks, optimisation methods, and success criteria. Later
+studies additionally test the defences with attack methods adapted to their
+training procedures
 \parencites{jia2025critical}
              {yang2025checkpointgcg}
-             {pandya2025astra}.
+             {pandya2025astra}. The resulting evidence must therefore be
+interpreted in relation to the attacker model and evaluation scope rather than
+as a universal measure of prompt-injection resistance.
 
-This creates two related questions: how much security can learned
-instruction--data separation provide under the evaluated conditions, and how
-should applications limit the consequences when the model still follows an
-injected instruction?
+This paper examines both the effectiveness of learned instruction--data
+separation and the controls required outside the model when that separation
+fails.
 
 \medskip
 \noindent\textbf{Research Question} \quad
@@ -48,15 +50,16 @@ system-level controls are required when they do not provide an independently
 enforced security boundary?}
 
 \medskip
-To answer this question, the paper compares the original StruQ and SecAlign
-evaluations with later defence-adaptive studies and relates their limitations
-to system-level security controls. No original experiments or independent
+The paper presents a scoped narrative review of StruQ, SecAlign, and subsequent
+defence-adaptive evaluations. The studies are compared according to their
+attacker assumptions, attack construction methods, success criteria, utility
+effects, and enforcement assumptions. No original experiments or independent
 replications are conducted.
 
 Chapter~\ref{sec:llms} introduces LLM prompting and structured context.
 Chapter~\ref{sec:prompt-injection} describes prompt-injection delivery and
-construction methods, and Chapter~\ref{sec:threat} defines the threat model used
-for the comparison. Chapter~\ref{sec:struq} examines StruQ and SecAlign, while
-Chapter~\ref{sec:limits} evaluates the limits of their reported robustness.
-Chapter~7 derives practical deployment implications, and
+construction methods, while Chapter~\ref{sec:threat} defines the threat model
+used to interpret the evidence. Chapter~\ref{sec:struq} examines StruQ and
+SecAlign, and Chapter~\ref{sec:limits} discusses the limits of their reported
+robustness. Chapter~7 derives practical deployment implications, and
 Chapter~\ref{sec:conclusion} answers the research question.
