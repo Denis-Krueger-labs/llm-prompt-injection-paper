@@ -139,16 +139,16 @@ exchange before introducing a new instruction.
 
 Optimisation-based attacks instead search for token sequences that increase the
 probability of an attacker-selected output. Greedy Coordinate Gradient (GCG)
-is a prominent example. A model gradient estimates how changes to the input
-would affect the attack objective. GCG uses gradients with respect to token
+is a prominent example. GCG uses gradients with respect to token
 representations to rank candidate substitutions and iteratively construct an
-adversarial suffix
-\parencite{zou2023universal}.
+adversarial suffix. A model gradient estimates how changes to the input
+would affect the attack objective~\parencite{zou2023universal}.
 
 GCG was introduced for jailbreaking safety-aligned models, but StruQ and
-SecAlign adapt its objective to prompt injection
-\parencites{chen2025struq}{chen2025secalign}. The distinction lies in the
-security objective: a jailbreak attempts to override a provider's safety
-policy, whereas prompt injection redirects an application- or user-defined
-trusted task through attacker-controlled content. The same construction method
-can support either objective without making the threat models identical.
+SecAlign adapt its objective to prompt injection, in order for them to 
+also defend against it~\parencites{chen2025struq}{chen2025secalign}. 
+The distinction lies in the security objective: a jailbreak attempts 
+to override a provider's safety policy, whereas prompt injection redirects 
+an application- or user-defined trusted task through attacker-controlled content. 
+The same construction method can support either objective without making the 
+threat models identical.
