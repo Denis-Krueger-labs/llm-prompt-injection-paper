@@ -12,7 +12,7 @@ public implementations and published security and utility evaluations
 \subsection{Motivation for Structured Queries}
 \label{subsec:structured-queries}
 
-As discussed in Section~\ref{sec:llms}, an LLM may treat instructional text in
+As discussed in Section~\ref{sec:prompt-injection}, an LLM may treat instructional text in
 untrusted data as though it were part of the trusted task. A structured query
 instead separates the trusted instruction from the data to be processed. In a
 document-summarisation application, for example, the instruction defines the
@@ -36,8 +36,8 @@ separately and combines them using reserved delimiter tokens. These include
 \parencite{chen2025struq}.
 
 Because an attacker could attempt to reproduce the delimiters inside the data,
-the front end repeatedly removes reserved delimiter strings and
-\texttt{\#\#} from the untrusted input before constructing the final query.
+the front end recursively removes reserved delimiter strings from the untrusted 
+input before constructing the final query.
 This prevents the attacker from directly forging the structural format used by
 the trusted front end.
 
@@ -47,7 +47,7 @@ commands that appear inside the data component.
 
 Figure~\ref{fig:struq-architecture} shows how both mechanisms interact. Only
 the untrusted data pass through the reserved-string filter before the trusted
-instruction and filtered data are combined.
+instruction and filtered data is combined.
 
 \begin{figure}[htbp]
     \centering
@@ -81,8 +81,7 @@ instruction and filtered data are combined.
         \draw[flow] (query) -- (model);
     \end{tikzpicture}
     \caption[Architecture of StruQ]{Simplified StruQ front end and model input.
-    Untrusted data pass through the reserved-string filter before being
-    combined with the trusted instruction. Original schematic based on
+    Original schematic based on
     \textcite{chen2025struq}.}
     \label{fig:struq-architecture}
 \end{figure}
@@ -92,19 +91,19 @@ instruction and filtered data are combined.
 
 Structural formatting alone is insufficient because an ordinary
 instruction-tuned model may still follow commands found inside the data.
-StruQ therefore uses structured instruction tuning.
+StruQ therefore uses \textit{structured instruction tuning}.
 
-The training data contain ordinary structured queries and augmented examples
+The training data contains ordinary structured queries and augmented examples
 in which an additional instruction is inserted into the untrusted component.
 The expected response continues to follow the trusted instruction rather than
 the injected one
 \parencite{chen2025struq}.
 
 The augmented examples also include forged instruction sections, delimiter
-manipulation, and fake response sections. The front end and model training
-therefore serve complementary purposes: the filter protects the reserved
-format, while the training reduces compliance with instructional language in
-the data.
+manipulation, and fake response sections, which are typical attacks on StruQ.
+The front end and model training therefore serve complementary purposes: the 
+filter protects the reserved format, while the training reduces compliance with 
+instructional language in the data.
 
 \subsubsection{Original Evaluation}
 \label{subsec:struq-evaluation}
@@ -123,22 +122,22 @@ Section~\ref{subsec:attack-construction}. StruQ reduced ASR from \(97\%\) to
 
 The results show strong resistance to the handcrafted attacks represented in
 the evaluation, but incomplete protection against white-box optimisation.
-Relative utility changed only slightly in AlpacaEval: from \(67.2\%\) to
-\(67.6\%\) on Llama and from \(80.0\%\) to \(78.7\%\) on Mistral
+Relative utility of the model changed only slightly in AlpacaEval: from 
+\(67.2\%\) to \(67.6\%\) on Llama and from \(80.0\%\) to \(78.7\%\) on Mistral
 \parencite{chen2025struq}.
 
 StruQ also assumes that the application can identify which input is the trusted
 task and which is untrusted data. This is straightforward in structured
-workflows, but more difficult in open-ended conversations where users may mix
-instructions and data within the same message.
+workflows, but more difficult in open-ended conversations, where the forced divide may 
+decrease usability~\parencite{chen2025struq}.
 
 \subsection{SecAlign}
 \label{subsec:secalign}
 
-SecAlign pursues the same separation goal but changes the training objective.
-The authors argue that supervised structured instruction tuning reinforces the
-desired response without explicitly discouraging a response that follows the
-injected instruction
+SecAlign was based directly of of StruQ, thus pursues the same separation goal
+but changes the training objective. The authors argue that supervised structured
+instruction tuning reinforces the desired response without explicitly discouraging
+a response that follows the injected instruction
 \parencite{chen2025secalign}.
 
 \subsubsection{Preference Alignment}
@@ -150,14 +149,15 @@ response that follows the trusted task, and a rejected response that follows
 the injection.
 
 Direct Preference Optimisation increases the likelihood of the preferred
-response relative to the rejected response. The training data are generated by
-inserting instructions from other samples into the data component. The
-preferred output remains the response to the trusted task, while the rejected
+response relative to the rejected response, by teaching it the difference 
+between a secure, correct response and a compromised one. The training data
+is generated by inserting instructions from other samples into the data component.
+The preferred output remains the response to the trusted task, while the rejected
 output follows the inserted instruction
 \parencite{chen2025secalign}.
 
-Unlike StruQ, SecAlign does not require a newly reserved token vocabulary and
-can be applied to existing prompt formats. The application must nevertheless
+SecAlign however does not eliminate the seeming necessity of prompt formats, 
+continuing to use the structure of StruQ. The application must nevertheless 
 continue to distinguish the trusted instruction from the untrusted data.
 SecAlign changes model behaviour; it does not infer trustworthy origin on
 behalf of the application.
